@@ -12,6 +12,10 @@ class Setting(pydantic.BaseModel):
     mode: lib_models.EnvironmentType = lib_models.EnvironmentType.PROD
     debug_level: lib_models.DebugLevelType = lib_models.DebugLevelType.INFO
     
+    # Providers
+    http_provider: str = "fastapi"
+    server_provider: str = "uvicorn"
+    
     # Meta Documentation
     title: str = "Smart Home Back"
     summary: str = _SUMMARY

@@ -1,8 +1,32 @@
 import pydantic
+from typing import Dict
 
 from app.lib import model as lib_models 
 
 
+_SUMMARY = "API Smart Home Backend"
+_DESCRIPTION = """Smart Home
+"""
+
 class Setting(pydantic.BaseModel):
     mode: lib_models.EnvironmentType = lib_models.EnvironmentType.PROD
     debug_level: lib_models.DebugLevelType = lib_models.DebugLevelType.INFO
+    
+    # Meta Documentation
+    title: str = "Smart Home Back"
+    summary: str = _SUMMARY
+    description: str = _DESCRIPTION
+    version: str = "0.0.1"
+    contact: Dict[str, str] = {
+        "name": "Gabriel Vargas Monroy",
+        "url": "https://vmgabriel.com",
+        "email": "vmgabriel96@gmail.com",
+    }
+    
+    # Server
+    host: str = "0.0.0.0"
+    port: int = 8080
+    
+    @property
+    def has_debug(self) -> bool:
+        return self.debug_level is not lib_models.DebugLevelType.NONE

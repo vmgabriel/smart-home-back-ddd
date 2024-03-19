@@ -11,3 +11,4 @@ class DebugLevelType(enum.StrEnum):
     ERROR = enum.auto()
     WARNING = enum.auto()
     INFO = enum.auto()
+    NONE = enum.auto()

@@ -12,3 +12,16 @@ class DebugLevelType(enum.StrEnum):
     WARNING = enum.auto()
     INFO = enum.auto()
     NONE = enum.auto()
+
+
+class HttpStatusType(enum.StrEnum):
+    GET = enum.auto()
+    POST = enum.auto()
+    PUT = enum.auto()
+    PATCH = enum.auto()
+    DELETE = enum.auto()
+    
+    
+class ResponseType(enum.StrEnum):
+    JSON = enum.auto()
+    WS = enum.auto()

@@ -6,12 +6,14 @@ import importlib.util
 
 from app import lib
 from app.lib import domain
-from app.adapter import http, server
+from app.adapter import http, server, log
 
 
 _SETTINGS = lib.SETTINGS
-_HTTP_PROVIDER = http.get(_SETTINGS.http_provider)()
+_LOG_PROVIDER = log.get(_SETTINGS.log_provider)(settings=_SETTINGS)
+_HTTP_PROVIDER = http.get(_SETTINGS.http_provider)(log=_LOG_PROVIDER)
 _SERVER_PROVIDER = server.get(_SETTINGS.server_provider)()
+
 
 _PATH_DISCARD_APP: List[str] = ["lib", "adapter"]
 _NAME_ENTRYPOINT_FILE = "entrypoint.py"

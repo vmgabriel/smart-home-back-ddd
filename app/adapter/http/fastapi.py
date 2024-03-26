@@ -48,11 +48,14 @@ class FastApiAdapter(model.HttpAdapter):
             description=route.description,
         )
         
+        command_function = None
         if route.command:
             command_function = self.functions_commands[route.command.__name__]
             
         if not command_function:
             return
+        
+        self.log.info(f"Adding Command [{route.command.__name__}]")
             
         cmd = route.command()
         if inspect.iscoroutinefunction(command_function):

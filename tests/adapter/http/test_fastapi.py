@@ -5,6 +5,7 @@ import unittest.mock as mock
 from app.adapter.http import get as http_get, model
 from app.lib import domain, model as lib_model
 from app.lib.settings import Setting
+from app.adapter.log import get as log_get
 
 
 @pytest.mark.parametrize("port", ["FAKE", "FASTAPI", "ERROR"])
@@ -12,12 +13,13 @@ def test_get_fastapi_ok(
     port: str,
 ) -> None:
     configuration = Setting()
+    log = log_get("LOGGING")
     http = http_get(port)
     
     if port == "ERROR":
         assert not http
         return
-    execution: model.AppHttp | None = http().execute(settings=configuration)
+    execution: model.AppHttp | None = http(log=log).execute(settings=configuration)
     
     assert execution
     assert execution.instance
@@ -26,7 +28,8 @@ def test_get_fastapi_ok(
 @mock.patch("fastapi.FastAPI.get")
 def test_add_route_fastapi(get: mock.MagicMock) -> None:
     configuration = Setting()
-    http = http_get("FASTAPI")()
+    log = log_get("LOGGING")
+    http = http_get("FASTAPI")(log=log)
     
     class Val(pydantic.BaseModel):
         a: int

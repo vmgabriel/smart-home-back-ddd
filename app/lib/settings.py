@@ -12,7 +12,7 @@ _DESCRIPTION = """Smart Home
 
 class Setting(pydantic.BaseModel):
     mode: lib_models.EnvironmentType = lib_models.EnvironmentType.PROD
-    debug_level: lib_models.DebugLevelType = lib_models.DebugLevelType.INFO
+    debug_level: lib_models.DebugLevelType = lib_models.DebugLevelType.ERROR
     
     # Path Main
     app_path: pathlib.Path = pathlib.Path("app")
@@ -20,6 +20,7 @@ class Setting(pydantic.BaseModel):
     # Providers
     http_provider: str = "fastapi"
     server_provider: str = "uvicorn"
+    log_provider: str = "logging"
     
     # Meta Documentation
     title: str = "Smart Home Back"

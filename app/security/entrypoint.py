@@ -2,6 +2,7 @@ from typing import Type
 import pydantic
 
 from app.lib import domain
+from app.security import commands
 
 
 class PP(pydantic.BaseModel):
@@ -13,4 +14,4 @@ class GetItems(domain.EntrypointWeb):
     name: str = "Get Items"
     summary: str = "Summary of get items"
     description: str = "Description of get items"
-    response_model: Type[pydantic.BaseModel] | None = PP
+    command: Type[domain.Command] | None = commands.Cks

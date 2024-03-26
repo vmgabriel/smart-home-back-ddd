@@ -1,3 +1,4 @@
+import inspect
 import fastapi
 from typing import Callable, Dict
 
@@ -30,7 +31,11 @@ class FastApiAdapter(model.HttpAdapter):
         for resp in route.responses:
             responses[resp.status_code] = {
                 "description": resp.description, 
-                "content": {responses_type[resp.type]: {"example": resp.content}}
+                "content": {
+                    responses_type[resp.type]: {
+                        "example": resp.content
+                    }
+                }
             }
         
         decorator_router = status_callable[route.method](
@@ -43,9 +48,21 @@ class FastApiAdapter(model.HttpAdapter):
             description=route.description,
         )
         
-        @decorator_router
-        def callable_context() -> route.response_model:
-            return route.response_model.model_validate({"a": 1, "b": 2})
+        if route.command:
+            command_function = self.functions_commands[route.command.__name__]
+            
+        if not command_function:
+            return
+            
+        cmd = route.command()
+        if inspect.iscoroutinefunction(command_function):
+            @decorator_router
+            async def callable_context() -> domain.CommandResponse:
+                return await command_function(cmd=cmd)
+        else:
+            @decorator_router
+            def callable_context() -> domain.CommandResponse:
+                return command_function(cmd=cmd)
         
         
     

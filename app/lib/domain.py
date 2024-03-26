@@ -1,8 +1,18 @@
 from typing import Generator, List, Dict, Any, Type
 
 import pydantic
+import uuid
 
 from app.lib import model
+
+
+class CommandResponse(pydantic.BaseModel):
+    payload: Dict[str, Any] = pydantic.Field(default_factory=dict)
+    errors: List[Dict[str, Any]] = pydantic.Field(default_factory=list)
+
+
+class Command(pydantic.BaseModel):
+    trace_id: uuid.UUID = pydantic.Field(default_factory=uuid.uuid4)
 
 
 class ExampleResponse(pydantic.BaseModel):
@@ -17,7 +27,7 @@ class EntrypointWeb(pydantic.BaseModel):
     name: str
     summary: str
     description: str
-    response_model: Type[pydantic.BaseModel] | None
+    command: Type[Command] | None = None
     responses: List[ExampleResponse] = pydantic.Field(default_factory=list)
     tags: List[str] = pydantic.Field(default_factory=list)
     status_code: int = 200

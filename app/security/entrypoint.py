@@ -5,10 +5,6 @@ from app.lib import domain
 from app.security import commands
 
 
-class PP(pydantic.BaseModel):
-    a: int = 1
-
-
 class GetItems(domain.EntrypointWeb):
     route: str = "/item"
     name: str = "Get Items"

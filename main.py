@@ -6,13 +6,14 @@ import importlib.util
 
 from app import lib
 from app.lib import domain
-from app.adapter import http, server, log
+from app.adapter import http, server, log, uow
 
 
 _SETTINGS = lib.SETTINGS
 _LOG_PROVIDER = log.get(_SETTINGS.log_provider)(settings=_SETTINGS)
 _HTTP_PROVIDER = http.get(_SETTINGS.http_provider)(log=_LOG_PROVIDER)
 _SERVER_PROVIDER = server.get(_SETTINGS.server_provider)()
+_UOW_MIGRATION = uow.migration_get(_SETTINGS.migration_provider)(log=_LOG_PROVIDER, settings=_SETTINGS)
 
 
 _PATH_DISCARD_APP: List[str] = ["lib", "adapter"]
@@ -51,6 +52,14 @@ def get_classes_of_module_path(file_module: pathlib.Path) -> List[object]:
     ]
     
     
+def get_migration_of_module_path(file_module: pathlib.Path) -> object:
+    spec = importlib.util.spec_from_file_location("modulo", file_module.absolute())
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    
+    return getattr(module, "migration", None)
+    
+    
 def get_functions_of_module_path(file_module: pathlib.Path) -> List[object]:
     spec = importlib.util.spec_from_file_location("modulo", file_module.absolute())
     module = importlib.util.module_from_spec(spec)
@@ -81,6 +90,19 @@ def get_parameters_of_function(fn: Callable) -> Dict[str, str]:
     return parameters
 
 
+def _get_migrations() -> Dict[str, object]:
+    path = pathlib.Path(_SETTINGS.route_path_migrations)
+    files = [
+        file for file in path.iterdir() 
+        if file.is_file() and file.name != "__init__.py"
+    ]
+    files.sort(key=lambda file: file.name.split("_")[0])
+    return { 
+        file.name.split(".")[0]: get_migration_of_module_path(file) 
+        for file in files
+    }
+
+
 classes_entrypoint = [
     cl 
     for mod in get_module_for_app(_NAME_ENTRYPOINT_FILE)
@@ -102,6 +124,13 @@ _HTTP_PROVIDER.set_functions_commands(functions_commands)
 for class_entrypoint in classes_entrypoint:
     _HTTP_PROVIDER.add_route(class_entrypoint())
 
+
+mg = _get_migrations()
+print (f"migration {mg}")
+
+# TODO: Con los datos que se obtuvieron se pasa a migrar
+# TODO: Luego de migrar y verificar hacer tests
+# TODO: Con la Migracion hacer UOWs
 
 if __name__ == "__main__":
     app = _HTTP_PROVIDER.execute(settings=_SETTINGS)

@@ -22,6 +22,10 @@ class Setting(pydantic.BaseModel):
     server_provider: str = "uvicorn"
     log_provider: str = "logging"
     
+    migration_provider: str = "sqlite"
+    route_path_migrations: str = "app/adapter/uow/sqlite/migrations"
+    migration_db_name: str = "temporal.db"
+    
     # Meta Documentation
     title: str = "Smart Home Back"
     summary: str = _SUMMARY

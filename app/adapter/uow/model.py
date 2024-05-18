@@ -24,6 +24,7 @@ class Migrator(pydantic.BaseModel):
 class MigrateContext(pydantic.BaseModel):
     name: str
     migrator: Migrator
+    has_migrated: bool = False
 
 
 class Migration(abc.ABC):
@@ -40,24 +41,41 @@ class Migration(abc.ABC):
         self.migrations.append(migrator)
         
     def migrate(self) -> None:
-        for to_migrate in self.migrations:
-            if not self._is_migrated(to_migrate):
-                try:
-                    self.log.info(f"Making Migration {to_migrate.name}")
-                    self._migrate_unique(to_migrate)
-                    self._mark_migrated(to_migrate)
-                except MigrationFailedError as exc:
-                    self.log.error(f"Migration Error - {exc}")
-                    self.log.warning(f"Making Rollback {to_migrate.name}")
-                    self._rollback_unique(to_migrate)
-                    raise MigrationsNotCompletedError(message=str(exc))
+        with self:
+            for to_migrate in self.migrations:
+                if not self._is_migrated(to_migrate):
+                    try:
+                        self.log.info(f"Making Migration {to_migrate.name}")
+                        self._migrate_unique(to_migrate)
+                        self._mark_migrated(to_migrate)
+                    except MigrationFailedError as exc:
+                        self.log.error(f"Migration Error - {exc}")
+                        self.log.warning(f"Making Rollback {to_migrate.name}")
+                        self._rollback_unique(to_migrate)
+                        raise MigrationsNotCompletedError(message=str(exc))
+            if all(not migration.has_migrated for migration in self.migrations):
+                self.log.info("Not Require Migrations")
+                
+    def __enter__(self) -> None:
+        self._open()
+        
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        self._close()
+                
+    @abc.abstractmethod
+    def _open(self) -> None:
+        raise NotImplementedError()
+        
+    @abc.abstractmethod
+    def _close(self) -> None:
+        raise NotImplementedError()
             
     @abc.abstractmethod
-    def _is_migrated(self, migrator: MigrateContext) -> bool:
+    def _is_migrated(self, to_migrate: MigrateContext) -> bool:
         raise NotImplementedError()
     
     @abc.abstractmethod
-    def _mark_migrated(self) -> None:
+    def _mark_migrated(sel, to_migrate: MigrateContext) -> None:
         raise NotImplementedError()
     
     @abc.abstractmethod
@@ -65,7 +83,7 @@ class Migration(abc.ABC):
         raise NotImplementedError()
     
     @abc.abstractmethod
-    def _migrate_unique(self, to_migrate: Migrator) -> None:
+    def _migrate_unique(self, to_migrate: MigrateContext) -> None:
         raise NotImplementedError()
 
 

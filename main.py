@@ -7,6 +7,7 @@ import importlib.util
 from app import lib
 from app.lib import domain
 from app.adapter import http, server, log, uow
+from app.adapter.uow import model as uow_model
 
 
 _SETTINGS = lib.SETTINGS
@@ -19,6 +20,10 @@ _UOW_MIGRATION = uow.migration_get(_SETTINGS.migration_provider)(log=_LOG_PROVID
 _PATH_DISCARD_APP: List[str] = ["lib", "adapter"]
 _NAME_ENTRYPOINT_FILE = "entrypoint.py"
 _NAME_COMMAND_FILE = "commands.py"
+
+
+class NotFoundMigration(Exception):
+    message: str = "Migration not Found"
 
 
 def get_apps() -> List[pathlib.Path]:
@@ -90,7 +95,7 @@ def get_parameters_of_function(fn: Callable) -> Dict[str, str]:
     return parameters
 
 
-def _get_migrations() -> Dict[str, object]:
+def _get_migrations() -> Dict[str, object | None]:
     path = pathlib.Path(_SETTINGS.route_path_migrations)
     files = [
         file for file in path.iterdir() 
@@ -101,6 +106,14 @@ def _get_migrations() -> Dict[str, object]:
         file.name.split(".")[0]: get_migration_of_module_path(file) 
         for file in files
     }
+
+
+def _migrate(name: str, to_migrate: object | None) -> None:
+    _LOG_PROVIDER.info(f"Including Migration {name}")
+    if not to_migrate:
+        raise NotFoundMigration(message=f"Migration {name} Not Found")
+    _UOW_MIGRATION.add_migrator(uow_model.MigrateContext(name=name, migrator=to_migrate))
+    
 
 
 classes_entrypoint = [
@@ -125,12 +138,10 @@ for class_entrypoint in classes_entrypoint:
     _HTTP_PROVIDER.add_route(class_entrypoint())
 
 
-mg = _get_migrations()
-print (f"migration {mg}")
-
-# TODO: Con los datos que se obtuvieron se pasa a migrar
-# TODO: Luego de migrar y verificar hacer tests
-# TODO: Con la Migracion hacer UOWs
+migrators = _get_migrations()
+for name_migration, migrator in migrators.items():
+    _migrate(name_migration, migrator)
+_UOW_MIGRATION.migrate()
 
 if __name__ == "__main__":
     app = _HTTP_PROVIDER.execute(settings=_SETTINGS)

@@ -4,6 +4,7 @@ import contextlib
 import abc
 import pydantic
 import enum
+import datetime
 
 from app import lib as lib_models
 from app.adapter.log import model as log_model
@@ -78,7 +79,7 @@ class Migration(abc.ABC):
         raise NotImplementedError()
     
     @abc.abstractmethod
-    def _mark_migrated(sel, to_migrate: MigrateContext) -> None:
+    def _mark_migrated(self, to_migrate: MigrateContext) -> None:
         raise NotImplementedError()
     
     @abc.abstractmethod
@@ -108,16 +109,38 @@ class PersistenceTypeNotFoundError(Exception):
     message: str = "Persistence Not Found"
 
 
+class RepositoryData(pydantic.BaseModel):
+    id: str
+    actived: bool
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+    deleted_at: datetime.datetime
+
+
 class Repository(abc.ABC):
     _session: object
+    log: log_model.LogAdapter
+    settings: lib_models.settings.Setting
+    table_name: str
+    fields: List[str]
+    data: RepositoryData
     
-    def __init__(self, _session: object) -> None:
-        self._session = _session    
+    def __init__(
+        self, 
+        _session: object, 
+        log: log_model.LogAdapter, 
+        settings: lib_models.settings.Setting,
+    ) -> None:
+        self._session = _session
+        self.log = log
+        self.settings = settings
+        self.fields = []
     
-    @staticmethod
-    def serialize(**kwargs) -> "Repository":
+    @abc.abstractmethod
+    def serialize(self, data: Any) -> "Repository":
         raise NotImplementedError
         
+    @abc.abstractmethod
     def dict(self) -> Dict[str, Any]:
         raise NotImplementedError()
         
@@ -154,7 +177,7 @@ class Persistence(abc.ABC):
             return None
         if isinstance(repository, Repository):
             return repository
-        new_repository = repository(_session=self._session)
+        new_repository = repository(_session=self._session, log=self.log, settings=self.settings)
         self.repositories[repository_type] = new_repository
         return new_repository
         

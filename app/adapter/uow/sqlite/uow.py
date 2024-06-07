@@ -3,6 +3,20 @@ import sqlite3
 from app.adapter.uow import model
 
 
+class SQLitePersistence(model.Persistence):
+    _session: sqlite3.Connection
+    
+    def commit(self) -> None:
+        self._session.commit()
+    
+    def rollback(self) -> None:
+        self._session.rollback()
+        
+    def flush(self) -> None:
+        # There are not flush method for sqlite 3
+        ...
+
+
 class SQLiteUOW(model.UOW):
     con: sqlite3.Connection
     
@@ -22,3 +36,4 @@ class SQLiteUOW(model.UOW):
     def _close(self, session: sqlite3.Cursor) -> None:
         session.close()
         self.log.info("Closed Session DB")
+        

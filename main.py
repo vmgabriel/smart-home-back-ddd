@@ -1,4 +1,4 @@
-from typing import List, Callable, Dict
+from typing import List, Callable, Dict, Tuple
 
 import inspect
 import pathlib
@@ -20,6 +20,7 @@ _UOW_MIGRATION = uow.migration_get(_SETTINGS.migration_provider)(log=_LOG_PROVID
 _PATH_DISCARD_APP: List[str] = ["lib", "adapter"]
 _NAME_ENTRYPOINT_FILE = "entrypoint.py"
 _NAME_COMMAND_FILE = "commands.py"
+_PATH_APP = pathlib.Path() / "app"
 
 
 class NotFoundMigration(Exception):
@@ -63,6 +64,15 @@ def get_migration_of_module_path(file_module: pathlib.Path) -> object:
     spec.loader.exec_module(module)
     
     return getattr(module, "migration", None)
+
+
+def get_repositories_and_migrations_by_domain(file_module: pathlib.Path) -> Tuple[object, object]:
+    init_module = file_module / "__init__.py"
+    spec = importlib.util.spec_from_file_location("modulo", init_module.absolute())
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    
+    return (getattr(module, "migrations", None), getattr(module, "repositories", None))
     
     
 def get_functions_of_module_path(file_module: pathlib.Path) -> List[object]:
@@ -131,8 +141,6 @@ functions_commands: Dict[object, Callable] = {
     for name_parameter, type_parameter in get_parameters_of_function(fn).items()
     if "cmd" == name_parameter
 }
-
-
 _HTTP_PROVIDER.set_functions_commands(functions_commands)
 for class_entrypoint in classes_entrypoint:
     _HTTP_PROVIDER.add_route(class_entrypoint())
@@ -141,7 +149,24 @@ for class_entrypoint in classes_entrypoint:
 migrators = _get_migrations()
 for name_migration, migrator in migrators.items():
     _migrate(name_migration, migrator)
+
+
+repositories = []
+
+# Get Domains
+for domain in _SETTINGS.domains:
+    _LOG_PROVIDER.info(f"Getting From Domain {domain} - Repositories | Migrations")
+    # TODO: Migrate based in domain
+    
+    migrations, repositories = get_repositories_and_migrations_by_domain(_PATH_APP / domain)
+    print(f"migrations {migrations}")
+    print(f"repositories {repositories}")
+    # TODO: Get Repositories and Inject
+    ...
+
+
 _UOW_MIGRATION.migrate()
+
 
 if __name__ == "__main__":
     app = _HTTP_PROVIDER.execute(settings=_SETTINGS)

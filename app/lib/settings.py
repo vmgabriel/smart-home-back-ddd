@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 import pydantic
 import pathlib
@@ -40,6 +40,11 @@ class Setting(pydantic.BaseModel):
     # Server
     host: str = "0.0.0.0"
     port: int = 8080
+    
+    # Domains
+    domains: List[str] = [
+        "security",
+    ]
     
     @property
     def has_debug(self) -> bool:

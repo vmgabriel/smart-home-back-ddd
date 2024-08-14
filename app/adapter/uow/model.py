@@ -71,7 +71,7 @@ class Migration(abc.ABC):
         raise NotImplementedError()
         
     @abc.abstractmethod
-    def _close(self) -> None:
+    def _close(self, exc_type, exc_value, exc_tb) -> None:
         raise NotImplementedError()
             
     @abc.abstractmethod

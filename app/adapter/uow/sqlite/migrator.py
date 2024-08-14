@@ -70,7 +70,7 @@ class SqliteMigration(model.Migration):
         self.log.info("Require Initial Migration")
         self.cur.execute(_MIGRATION_TABLE)
 
-    def _close(self) -> None:
+    def _close(self, exc_type, exc_value, exc_tb) -> None:
         self.log.info("Closing DB")
         self.con.close()
         self.log.info("Closed DB")

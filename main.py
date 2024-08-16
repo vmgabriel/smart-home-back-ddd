@@ -27,6 +27,14 @@ class NotFoundMigration(Exception):
     message: str = "Migration not Found"
 
 
+def get_files_of_dir(dir_path: pathlib.Path, discards: List[str] = ["__init__.py"]) -> List[pathlib.Path]:
+    return [
+        dir_path / fil.name 
+        for fil in dir_path.iterdir() 
+        if fil.is_file() and fil.name not in discards
+    ]
+
+
 def get_apps() -> List[pathlib.Path]:
     discard_path = [_SETTINGS.app_path / path_discard for path_discard in _PATH_DISCARD_APP]
     app_path: pathlib.Path = _SETTINGS.app_path
@@ -67,12 +75,14 @@ def get_migration_of_module_path(file_module: pathlib.Path) -> object:
 
 
 def get_repositories_and_migrations_by_domain(file_module: pathlib.Path) -> Tuple[object, object]:
-    init_module = file_module / "__init__.py"
-    spec = importlib.util.spec_from_file_location("modulo", init_module.absolute())
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    path_migrations: pathlib.Path = pathlib.Path(file_module / "infra" / "migrations")
+    path_repositories: pathlib.Path = pathlib.Path(file_module / "infra" / "repositories")
+
+    migrations = get_files_of_dir(path_migrations)
+    migrations.sort(key=lambda file: file.name.split("_")[0])
+    repositories = get_files_of_dir(path_repositories)
     
-    return (getattr(module, "migrations", None), getattr(module, "repositories", None))
+    return migrations, repositories 
     
     
 def get_functions_of_module_path(file_module: pathlib.Path) -> List[object]:
@@ -113,7 +123,7 @@ def _get_migrations() -> Dict[str, object | None]:
     ]
     files.sort(key=lambda file: file.name.split("_")[0])
     return { 
-        file.name.split(".")[0]: get_migration_of_module_path(file) 
+        file.name.split(".")[0]: get_migration_of_module_path(file)
         for file in files
     }
 
@@ -156,10 +166,15 @@ repositories = []
 # Get Domains
 for domain in _SETTINGS.domains:
     _LOG_PROVIDER.info(f"Getting From Domain {domain} - Repositories | Migrations")
-    # TODO: Migrate based in domain
-    
     migrations, repositories = get_repositories_and_migrations_by_domain(_PATH_APP / domain)
     print(f"migrations {migrations}")
+    for migration in migrations:
+        _migrate(
+            f"{domain}_{(migrations[0].name).split('.')[:-1][0]}", 
+            get_migration_of_module_path(migration)
+        )
+
+    # TODO: Include in UOW
     print(f"repositories {repositories}")
     # TODO: Get Repositories and Inject
     ...

@@ -47,6 +47,7 @@ class SqliteMigration(model.Migration):
         current_date = datetime.datetime.now().isoformat()
         self.cur.execute(_MARK_AS_MIGRATED, (to_migrate.name, current_date))
         self.con.commit()
+        self.log.info("Mark Migrated Correctly")
     
     def _rollback_unique(self, to_migrate: model.MigrateContext) -> None:
         if not to_migrate.has_migrated:

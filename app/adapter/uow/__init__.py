@@ -4,27 +4,49 @@ import enum
 
 from app.adapter.log import model as adapter_model, logging
 from app.adapter.uow import model as uow_model
-from app.adapter.uow.sqlite import migrator
+from app.adapter.uow.sqlite import migrator, uow as sqlite_uow
 
 
-class MigrationAdapter(enum.StrEnum):
+class PersistencyAdapter(enum.StrEnum):
     SQLITE = enum.auto()
     FAKE = enum.auto()
     
     @staticmethod
     def get(type: str) -> uow_model.Migration | None:
         try:
-            return MigrationAdapter[type.upper()]
+            return PersistencyAdapter[type.upper()]
         except Exception:
             return None
         
         
-migration_ports: Dict[MigrationAdapter, Type[uow_model.Migration]] = {
-    MigrationAdapter.SQLITE: migrator.SqliteMigration,
-    MigrationAdapter.FAKE: migrator.SqliteMigration,
+migration_ports: Dict[PersistencyAdapter, Type[uow_model.Migration]] = {
+    PersistencyAdapter.SQLITE: migrator.SqliteMigration,
+    PersistencyAdapter.FAKE: migrator.SqliteMigration,
+}
+
+uow_port: Dict[PersistencyAdapter, Type[uow_model.UOW]] = {
+    PersistencyAdapter.SQLITE: sqlite_uow.SQLiteUOW,
+    PersistencyAdapter.FAKE: sqlite_uow.SQLiteUOW,
+}
+
+persistence_ports:Dict[PersistencyAdapter, Type[uow_model.Persistence]] = {
+    PersistencyAdapter.SQLITE: sqlite_uow.SQLitePersistence,
+    PersistencyAdapter.FAKE: sqlite_uow.SQLitePersistence,
 }
 
 def migration_get(port: str) -> Type[uow_model.Migration] | None:
-    if selected_adapter := MigrationAdapter.get(port):
+    if selected_adapter := PersistencyAdapter.get(port):
         return migration_ports.get(selected_adapter)
+    return None
+
+
+def uow_get(port: str) -> Type[uow_model.UOW] | None:
+    if selected_adapter := PersistencyAdapter.get(port):
+        return uow_port.get(selected_adapter)
+    return None
+
+
+def persistence_get(port: str) -> Type[uow_model.Persistence] | None:
+    if selected_adapter := PersistencyAdapter.get(port):
+        return persistence_ports.get(selected_adapter)
     return None

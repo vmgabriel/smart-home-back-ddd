@@ -153,9 +153,11 @@ class Persistence(abc.ABC):
     log: log_model.LogAdapter
     settings: lib_models.settings.Setting
     _session: object
+    _connection: object
     
     def __init__(
         self,
+        _connection: object,
         _session: object,
         log: log_model.LogAdapter, 
         settings: lib_models.settings.Setting,
@@ -164,12 +166,13 @@ class Persistence(abc.ABC):
         self.repositories = {}
         self.log = log
         self.settings = settings
+        self._connection = _connection
         self._session = _session
     
     def add_repository(self, repository_type: Type[Repository]) -> None:
         if repository_type in self.repositories:
             raise RepositoryHasAlreadyExistsError()
-        self.repositories[repository_type] = repository_type
+        self.repositories[repository_type.__base__] = repository_type
         
     def get_repository(self, repository_type: Type[Repository]) -> Repository | Type[Repository] | None:
         repository = self.repositories.get(repository_type)
@@ -197,22 +200,24 @@ class Persistence(abc.ABC):
 class PersistenceCreator:
     kwargs: Any
     repositories: List[Type[Repository]]
+    persistence: Type[Persistence]
     
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(self, persistence: Type[Persistence], **kwargs: Any) -> None:
+        self.persistence = persistence
         self.kwargs = kwargs
         self.repositories = []
         
     def add_repository(self, repository_type: Type[Repository]) -> None:
         self.repositories.append(repository_type)
         
-    def build(self, _session: object) -> Persistence:
-        persistence = Persistence(**self.kwargs, _session=_session)
+    def build(self, _connection: object, _session: object) -> Persistence:
+        persistence_instance = self.persistence(**self.kwargs, _session=_session, _connection=_connection)
         for repository in self.repositories:
             try:
-                persistence.add_repository(repository)
+                persistence_instance.add_repository(repository)
             except RepositoryHasAlreadyExistsError:
                 pass
-        return persistence
+        return persistence_instance
         
     
 class UOW(abc.ABC):
@@ -235,11 +240,11 @@ class UOW(abc.ABC):
     
     @contextlib.contextmanager
     def session(self, type: PersistenceType) -> Generator[None, Persistence, None]:
-        _session = self._open()
+        _conn, _session = self._open()
         try:
             match type:
                 case PersistenceType.PERSISTENCE:
-                    yield self.persistence_creator.build(_session=_session)
+                    yield self.persistence_creator.build(_connection=_conn, _session=_session)
                 case _:
                     raise PersistenceTypeNotFoundError()
         finally:

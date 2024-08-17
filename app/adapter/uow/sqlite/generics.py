@@ -17,12 +17,20 @@ _IS_ID_FILTER = generics.Filter(definition="id = ?")
 _IS_ACTIVED_FILTER = generics.Filter(definition="actived = ?")
 
 
-class SqliteCRUDGenericRepository(generics.CRUDGenericRepository):
-    _session: sqlite3.Cursor
-    settings: lib_models.settings.Setting
-    log: log_model.LogAdapter
+class SqliteCRUDGenericRepository(generics.UpdateGenericRepository):
     table_name: str
     fields: List[str]
+
+    def __init__(
+        self,
+        *args: Any,
+        table_name: str,
+        fields: List[str],
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.table_name = table_name
+        self.fields = fields
     
     def create(self, new: model.RepositoryData) -> model.RepositoryData:
         self._session.execute(
@@ -53,17 +61,25 @@ class SqliteCRUDGenericRepository(generics.CRUDGenericRepository):
         )
         
 class SqliteFinderRepository(generics.GetterGenericRepository):
-    _session: sqlite3.Cursor
-    settings: lib_models.settings.Setting
-    log: log_model.LogAdapter
     table_name: str
     fields: List[str]
+
+    def __init__(
+        self,
+        *args: Any,
+        table_name: str, 
+        fields: List[str],
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.table_name = table_name
+        self.fields = fields
     
     def get_by_id(self, id: Any) -> model.RepositoryData:
         to_filter = _IS_ID_FILTER.apply(id)
         res = self._session.execute(
             _SELECT_DEFAULT.format(
-                self.table_name, 
+                self.table_name,
                 to_filter.filter.definition
             ),
             tuple(to_filter.generate_values)
@@ -73,7 +89,7 @@ class SqliteFinderRepository(generics.GetterGenericRepository):
             raise model.RepositoryNotFoundError()
         return self.serialize(found)
         
-    def filter(self, filters: List[generics.ToFilter], page: int = 0, count: int = 20) -> model.Filtered:
+    def filter(self, filters: List[generics.ToFilter], page: int = 0, count: int = 20) -> generics.Filtered:
         script = _SELECT_WITH_OFFSET_LIMIT_DEFAULT.format(
             self.table_name, 
             f"{_IS_ACTIVED_FILTER.definition}" + "and" if filters else "" + " and ".join([filter.filter.definition for filter in filters]),

@@ -15,6 +15,11 @@ _LOG_PROVIDER = log.get(_SETTINGS.log_provider)(settings=_SETTINGS)
 _HTTP_PROVIDER = http.get(_SETTINGS.http_provider)(log=_LOG_PROVIDER)
 _SERVER_PROVIDER = server.get(_SETTINGS.server_provider)()
 _UOW_MIGRATION = uow.migration_get(_SETTINGS.migration_provider)(log=_LOG_PROVIDER, settings=_SETTINGS)
+_PERSISTENCE_CREATOR = uow_model.PersistenceCreator(
+    log=_LOG_PROVIDER,
+    settings=_SETTINGS,
+    persistence=uow.persistence_get(_SETTINGS.migration_provider),
+)
 
 
 _PATH_DISCARD_APP: List[str] = ["lib", "adapter"]
@@ -82,7 +87,7 @@ def get_repositories_and_migrations_by_domain(file_module: pathlib.Path) -> Tupl
     migrations.sort(key=lambda file: file.name.split("_")[0])
     repositories = get_files_of_dir(path_repositories)
     
-    return migrations, repositories 
+    return migrations, repositories
     
     
 def get_functions_of_module_path(file_module: pathlib.Path) -> List[object]:
@@ -177,12 +182,24 @@ for domain in _SETTINGS.domains:
     # TODO: Include in UOW
     print(f"repositories {repositories}")
     # TODO: Get Repositories and Inject
-    ...
+    for repository_path in repositories:
+        print(f"repository path {repository_path}")
+        for repository in get_classes_of_module_path(file_module=repository_path):
+            if "Repository" in repository.__name__:
+                print(f"Adding Repository {repository.__name__}")
+                _PERSISTENCE_CREATOR.add_repository(repository_type=repository)
 
 
 _UOW_MIGRATION.migrate()
 
 
+_UOW = uow.uow_get(_SETTINGS.migration_provider)(
+    log=_LOG_PROVIDER, 
+    settings=_SETTINGS, 
+    persistence_creator=_PERSISTENCE_CREATOR
+)
+
+
 if __name__ == "__main__":
-    app = _HTTP_PROVIDER.execute(settings=_SETTINGS)
+    app = _HTTP_PROVIDER.execute(settings=_SETTINGS, uow=_UOW)
     _SERVER_PROVIDER.execute(port=app, settings=_SETTINGS)

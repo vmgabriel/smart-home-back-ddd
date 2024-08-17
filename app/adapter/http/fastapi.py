@@ -5,10 +5,11 @@ from typing import Callable, Dict
 from app import lib
 from app.lib import domain, model as lib_model
 from app.adapter.http import model
+from app.adapter.uow import model as uow_model
 
 
 _API: str = "/api"
-_DOCUMENTATION: str = "/documentation"
+_DOCUMENTATION: str = "/docs"
 
 
 class FastApiAdapter(model.HttpAdapter):
@@ -56,20 +57,29 @@ class FastApiAdapter(model.HttpAdapter):
             return
         
         self.log.info(f"Adding Command [{route.command.__name__}]")
-            
-        cmd = route.command()
+
+        command_execution_request = {
+            "cmd": route.command(),
+            "uow": self.uow,
+        }
+        function_required_parameters = inspect.signature(command_function).parameters
+        parameters = {
+            a: command_execution_request[a] 
+            for a, _ in function_required_parameters.items() 
+            if a in command_execution_request
+        }
+
         if inspect.iscoroutinefunction(command_function):
             @decorator_router
             async def callable_context() -> domain.CommandResponse:
-                return await command_function(cmd=cmd)
+                return await command_function(**parameters)
         else:
             @decorator_router
             def callable_context() -> domain.CommandResponse:
-                return command_function(cmd=cmd)
+                return command_function(**parameters)
         
-        
-    
-    def execute(self, settings: lib.settings.Setting) -> model.AppHttp:
+    def execute(self, settings: lib.settings.Setting, uow: uow_model.UOW) -> model.AppHttp:
+        self.uow = uow
         app = fastapi.FastAPI(
             debug=settings.has_debug,
             title=settings.title,

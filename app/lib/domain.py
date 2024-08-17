@@ -7,6 +7,7 @@ from app.lib import model
 
 
 class CommandResponse(pydantic.BaseModel):
+    """Command Response for Use and trace"""
     trace_id: str
     payload: Dict[str, Any] = pydantic.Field(default_factory=dict)
     errors: List[Dict[str, Any]] = pydantic.Field(default_factory=list)

@@ -25,25 +25,9 @@ class Filtered(pydantic.BaseModel):
     @property
     def has_next(self) -> bool:
         return self.total_pages < self.page
-    
 
 
-class CRUDGenericRepository(abc.ABC):
-    _session: object
-    settings: lib_models.settings.Setting
-    log: log_model.LogAdapter
-    
-    def __init__(
-        self,
-        _session: object,
-        log: log_model.LogAdapter, 
-        settings: lib_models.settings.Setting,
-    ) -> None:
-        super().__init__()
-        self.log = log
-        self.settings = settings
-        self._session = _session
-        
+class AlterGeneric(abc.ABC):
     @abc.abstractmethod
     def create(self, new: model.RepositoryData) -> model.RepositoryData:
         raise NotImplementedError()
@@ -55,6 +39,25 @@ class CRUDGenericRepository(abc.ABC):
     @abc.abstractmethod
     def delete(self, id: Any) -> None:
         raise NotImplementedError()
+
+
+class UpdateGenericRepository(AlterGeneric):
+    _session: object
+    settings: lib_models.settings.Setting
+    log: log_model.LogAdapter
+    
+    def __init__(
+        self,
+        _session: object,
+        log: log_model.LogAdapter, 
+        settings: lib_models.settings.Setting,
+        *args,
+        **kwargs,
+    ) -> None:
+        super().__init__()
+        self.log = log
+        self.settings = settings
+        self._session = _session
         
         
 class ToFilter(pydantic.BaseModel):
@@ -73,11 +76,24 @@ class Filter(pydantic.BaseModel):
     def apply(self, value: Any) -> ToFilter:
         return ToFilter(filter=filter, value=value)
 
-        
-class GetterGenericRepository(abc.ABC):
+
+class Getter(abc.ABC):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+
+    @abc.abstractmethod
+    def serialize(self, data: Any) -> model.RepositoryData:
+        raise NotImplementedError()
+    
+    @abc.abstractmethod
+    def get_by_id(self, id: Any) -> model.RepositoryData:
+        raise NotImplementedError()
+
+
+class GetterGenericRepository(Getter):
     _session: object
     settings: lib_models.settings.Setting
-    log: log_model.LogAdapter,
+    log: log_model.LogAdapter
     
     def __init__(
         self,
@@ -89,15 +105,6 @@ class GetterGenericRepository(abc.ABC):
         self.log = log
         self.settings = settings
         self._session = _session
-        
-    @abc.abstractmethod
-    def serialize(self, data: Any) -> model.RepositoryData:
-        raise NotImplementedError
-    
-    @abc.abstractmethod
-    @staticmethod
-    def get_by_id(self, id: Any) -> model.RepositoryData:
-        raise NotImplementedError()
         
     @abc.abstractmethod
     def filter(self, filters: List[ToFilter], page: int = 1, count: int = 20) -> Filtered:

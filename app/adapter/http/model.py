@@ -5,6 +5,7 @@ from typing import List, Callable, Dict
 from app import lib as lib_models
 from app.lib import domain
 from app.adapter.log import model as log_model
+from app.adapter.uow import model as uow_model
 
 
 class AppHttp(pydantic.BaseModel):
@@ -12,9 +13,12 @@ class AppHttp(pydantic.BaseModel):
 
 
 class HttpAdapter(abc.ABC):
-    log: log_model.LogAdapter
     routes: List[domain.EntrypointWeb]
     functions_commands: Dict[str, Callable] = pydantic.Field(default_factory=dict)
+
+    # Infra Required elements
+    log: log_model.LogAdapter
+    uow: uow_model.UOW
     
     def __init__(self, log: log_model.LogAdapter) -> None:
         self.routes = []
@@ -32,5 +36,5 @@ class HttpAdapter(abc.ABC):
         raise NotImplemented
     
     @abc.abstractmethod
-    def execute(self, settings: lib_models.settings.Setting) -> AppHttp:
+    def execute(self, settings: lib_models.settings.Setting, uow: uow_model.UOW) -> AppHttp:
         raise NotImplemented

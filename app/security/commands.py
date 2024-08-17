@@ -3,25 +3,42 @@ from app.security import services, domain as security_domain
 from app.adapter.uow import model as uow_model
 
 
-class Cks(domain.Command):
-    ...
-    
-    
-class Crm(domain.Command):
-    ...
-    
-    
-async def get_items(cmd: Cks, uow: uow_model.UOW) -> domain.CommandResponse:
+class AuthenticateUser(domain.Command):
+    username: str
+    password: str
+
+
+class CreateUser(domain.Command):
+    user: security_domain.PreCreationUser
+
+
+async def authenticate_user(cmd: AuthenticateUser, uow: uow_model.UOW) -> domain.CommandResponse:
     with uow.session(type=uow_model.PersistenceType.PERSISTENCE) as session:
-        print(f"session {session}")
-        print(f"session repositories {session.get_repository(security_domain.UserCreatorRepository)}")
+        getter_user = session.get_repository(security_domain.UserFinderRepository)
+        authentication_response = services.authenticate(
+            getter_repository=getter_user,
+            username=cmd.username, 
+            password=cmd.password
+        )
+    return domain.CommandResponse(
+        payload=authentication_response.dict() if authentication_response.status else {},
+        trace_id=str(cmd.trace_id),
+        errors=[authentication_response.dict()] if not authentication_response.status else [],
+    )
+
+
+async def create_new_user(cmd: CreateUser, uow: uow_model.UOW) -> domain.CommandResponse:
+    with uow.session(type=uow_model.PersistenceType.PERSISTENCE) as session:
+        persistence_repository = session.get_repository(security_domain.UserCreatorRepository)
+        getter_user = session.get_repository(security_domain.UserFinderRepository)
+        response = services.create_a_new_user(
+            getter_repository=getter_user,
+            persistence_repository=persistence_repository,
+            user=cmd.user
+        )
         session.commit()
-    return domain.CommandResponse(payload={"a": 1}, trace_id=str(cmd.trace_id))
-
-
-async def get_context(cmd: Crm) -> domain.CommandResponse:
-    return domain.CommandResponse(payload={"b": 1}, trace_id=str(cmd.trace_id))
-
-
-def generate_process(a: int = 1) -> int:
-    return 1
+    return domain.CommandResponse(
+        payload=response.dict() if response.created else {},
+        trace_id=str(cmd.trace_id),
+        errors=[response.dict()] if not response.created else [],
+    )

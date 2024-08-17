@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Type, Generator
+from typing import List, Dict, Any, Type, Generator, Optional
 
 import contextlib
 import abc
@@ -114,7 +114,7 @@ class RepositoryData(pydantic.BaseModel):
     actived: bool
     created_at: datetime.datetime
     updated_at: datetime.datetime
-    deleted_at: datetime.datetime
+    deleted_at: Optional[datetime.datetime]
 
 
 class Repository(abc.ABC):

@@ -20,6 +20,7 @@ class Command(pydantic.BaseModel):
 class ExampleResponse(pydantic.BaseModel):
     status_code: int
     description: str
+    example_name: str
     content: Dict[str, Any] | List[Any]
     type: model.ResponseType = model.ResponseType.JSON
 

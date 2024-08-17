@@ -1,6 +1,6 @@
 import abc
 import pydantic
-from typing import List, Callable, Dict
+from typing import List, Callable, Dict, Any
 
 from app import lib as lib_models
 from app.lib import domain
@@ -37,4 +37,4 @@ class HttpAdapter(abc.ABC):
     
     @abc.abstractmethod
     def execute(self, settings: lib_models.settings.Setting, uow: uow_model.UOW) -> AppHttp:
-        raise NotImplemented
+        raise NotImplementedError()

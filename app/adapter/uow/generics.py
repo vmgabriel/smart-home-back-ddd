@@ -74,7 +74,7 @@ class Filter(pydantic.BaseModel):
     values: int = 1
     
     def apply(self, value: Any) -> ToFilter:
-        return ToFilter(filter=filter, value=value)
+        return ToFilter(filter=self, value=value)
 
 
 class Getter(abc.ABC):

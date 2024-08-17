@@ -4,12 +4,14 @@ from app.adapter.uow import model
 _MIGRATION_TABLE = """
 CREATE TABLE IF NOT EXISTS user(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    actived BOOL NOT NULL,
     name TEXT NOT NULL,
     last_name TEXT NOT NULL,
     username TEXT NOT NULL,
     password TEXT NOT NULL,
     created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
+    updated_at TEXT NOT NULL,
+    deleted_at TEXT NOT NULL
 );
 """
 

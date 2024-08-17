@@ -1,13 +1,14 @@
 from typing import List, cast, Any
 
 import sqlite3
+import datetime
 
 from app import lib as lib_models
 from app.adapter.log import model as log_model
 from app.adapter.uow import generics, model
 
 
-_INSERT_DEFAULT = "INSERT INTO {} ({}) VALUE ({});"
+_INSERT_DEFAULT = "INSERT INTO {} ({}) VALUES ({}) returning id;"
 _UPDATE_DEFAULT = "UPDATE {} SET {} WHERE {};"
 _DELETE_DEFAULT = "UPDATE {} SET {} WHERE {};"  # It's the same, logic delete
 
@@ -31,16 +32,26 @@ class SqliteCRUDGenericRepository(generics.UpdateGenericRepository):
         super().__init__(*args, **kwargs)
         self.table_name = table_name
         self.fields = fields
+
+    def _fields(self, value: Any) -> str:
+        if value == None:
+            return ""
+        match type(value):
+            case datetime.datetime:
+                return cast(datetime.datetime, value).isoformat()
+            case _:
+                return value
     
     def create(self, new: model.RepositoryData) -> model.RepositoryData:
-        self._session.execute(
-            _INSERT_DEFAULT.format(
-                self.table_name,
-                ",".join(self.fields),
-                ",".join(["?" for _ in self.fields]),
-            ),
-            (getattr(new, x) for x in self.fields)
+        query = _INSERT_DEFAULT.format(
+            self.table_name,
+            ",".join(self.fields),
+            ",".join(["?" for _ in self.fields]),
         )
+        fields = tuple(self._fields(getattr(new, x)) for x in self.fields)
+        print(f"query {query}")
+        result = self._session.execute(query, fields)
+        new.id = str(next(result)[0])
         return new
             
     def update(self, id: Any, to_update: model.RepositoryData) -> model.RepositoryData:

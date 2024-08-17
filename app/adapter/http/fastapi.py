@@ -1,5 +1,7 @@
 import inspect
 import fastapi
+import itertools
+
 from typing import Callable, Dict
 
 from app import lib
@@ -29,12 +31,17 @@ class FastApiAdapter(model.HttpAdapter):
         }
         
         responses = {}
-        for resp in route.responses:
+        for status_code, responses_group in itertools.groupby(route.responses, key=lambda x: x.status_code):
+            resp = ...
+            examples_responses = {}
+            for x in responses_group:
+                examples_responses[x.example_name] = {"value": x.content}
+                resp = x
             responses[resp.status_code] = {
-                "description": resp.description, 
+                "description": resp.description,
                 "content": {
                     responses_type[resp.type]: {
-                        "example": resp.content
+                        "examples": examples_responses
                     }
                 }
             }
@@ -59,8 +66,8 @@ class FastApiAdapter(model.HttpAdapter):
         self.log.info(f"Adding Command [{route.command.__name__}]")
 
         command_execution_request = {
-            "cmd": route.command(),
             "uow": self.uow,
+            "request": fastapi.Request,
         }
         function_required_parameters = inspect.signature(command_function).parameters
         parameters = {
@@ -71,12 +78,12 @@ class FastApiAdapter(model.HttpAdapter):
 
         if inspect.iscoroutinefunction(command_function):
             @decorator_router
-            async def callable_context() -> domain.CommandResponse:
-                return await command_function(**parameters)
+            async def callable_context(payload: route.command) -> domain.CommandResponse:
+                return await command_function(**parameters, cmd=payload)
         else:
             @decorator_router
-            def callable_context() -> domain.CommandResponse:
-                return command_function(**parameters)
+            def callable_context(payload: route.command) -> domain.CommandResponse:
+                return command_function(**parameters, cmd=payload)
         
     def execute(self, settings: lib.settings.Setting, uow: uow_model.UOW) -> model.AppHttp:
         self.uow = uow

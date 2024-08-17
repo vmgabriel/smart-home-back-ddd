@@ -80,8 +80,8 @@ def get_migration_of_module_path(file_module: pathlib.Path) -> object:
 
 
 def get_repositories_and_migrations_by_domain(file_module: pathlib.Path) -> Tuple[object, object]:
-    path_migrations: pathlib.Path = pathlib.Path(file_module / "infra" / "migrations")
-    path_repositories: pathlib.Path = pathlib.Path(file_module / "infra" / "repositories")
+    path_migrations: pathlib.Path = pathlib.Path(file_module / "infra" / "migrations" / _SETTINGS.migration_provider)
+    path_repositories: pathlib.Path = pathlib.Path(file_module / "infra" / "repositories" / _SETTINGS.migration_provider)
 
     migrations = get_files_of_dir(path_migrations)
     migrations.sort(key=lambda file: file.name.split("_")[0])
@@ -172,7 +172,6 @@ repositories = []
 for domain in _SETTINGS.domains:
     _LOG_PROVIDER.info(f"Getting From Domain {domain} - Repositories | Migrations")
     migrations, repositories = get_repositories_and_migrations_by_domain(_PATH_APP / domain)
-    print(f"migrations {migrations}")
     for migration in migrations:
         _migrate(
             f"{domain}_{(migrations[0].name).split('.')[:-1][0]}", 

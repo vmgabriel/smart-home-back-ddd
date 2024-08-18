@@ -58,7 +58,10 @@ class AuthenticationResponse(pydantic.BaseModel):
     status: bool = False
     message: str
     type: str | None
-    token: str | None
+    access_token: str | None
+    refresh_token: str | None
+    generation_datetime: datetime.datetime | None
+    expiration_datetime: datetime.datetime | None
 
 
 class UserCreatedResponse(pydantic.BaseModel):

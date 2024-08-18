@@ -96,8 +96,9 @@ class FastApiAdapter(model.HttpAdapter):
         self.log.info(f"Adding Command [{route.command.__name__}]")
 
         command_execution_request = {
-            "user": ...,
+            "user": ...,  # TODO: Inject user if use token
             "uow": self.uow,
+            "jwt": self.jwt,
             "request": fastapi.Request,
         }
         function_required_parameters = inspect.signature(command_function).parameters
@@ -108,7 +109,6 @@ class FastApiAdapter(model.HttpAdapter):
         }
 
         def check_authentication(token: str) -> fastapi.responses.JSONResponse | None:
-            print(f"token {token}")
             if not token.startswith(f"{self.auth_type} "):
                 return fastapi.responses.JSONResponse(
                     content={"payload": {}, "errors": [{"message": "Not Authentication"}]}, 

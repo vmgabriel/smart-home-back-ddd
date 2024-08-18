@@ -37,12 +37,12 @@ class AuthPyJWT(model.AuthJWT):
         access_token = jwt.encode(
             payload=to_access_token.dict(), 
             key=self.settings.auth_access_token_secret, 
-            algorithms=["HS256"],
+            algorithm="HS256",
         )
         refresh_token = jwt.encode(
             payload=to_refresh_token.dict(), 
             key=self.settings.auth_refresh_token_secret, 
-            algorithms=["HS256"]
+            algorithm="HS256"
         )
 
         return model.EncodedJWT(
@@ -50,7 +50,7 @@ class AuthPyJWT(model.AuthJWT):
             access_token=access_token,
             refresh_token=refresh_token,
             generation=current_datetime,
-            expiration=expiration_access_token,
+            expiration=expiration,
         )
 
     def check_and_decode(self, token: str, allowed_aud: List[str]) -> model.StatusCheckJWT:
@@ -64,7 +64,7 @@ class AuthPyJWT(model.AuthJWT):
                 token, 
                 self.settings.auth_access_token_secret, 
                 audience=allowed_aud, 
-                algorithms=["HS256"]
+                algorithm="HS256"
             )
             data = model.JWTData(**decoded)
         except jwt.exceptions.InvalidAudienceError:
@@ -103,7 +103,7 @@ class AuthPyJWT(model.AuthJWT):
             decoded = jwt.decode(
                 token, 
                 self.settings.auth_refresh_token_secret,
-                algorithms=["HS256"]
+                algorithms="HS256",
             )
             data = model.RefreshAuthUser(**decoded)
         except jwt.exceptions.ExpiredSignatureError:

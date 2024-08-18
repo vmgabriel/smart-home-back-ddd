@@ -11,7 +11,9 @@ class DotEnvPort(model.EnviromentVariableAdapter):
     
     def __init__(self) -> None:
         super().__init__()
-        self.obj = dotenv.main.DotEnv(dotenv_path=pathlib.Path())
+        path = pathlib.Path() / ".env"
+        dotenv.load_dotenv(dotenv_path=path.absolute())
+        self.obj = dotenv.main.DotEnv(dotenv_path=path.absolute())
         
     def get(self, value: str) -> str | None:
         return self.obj.get(value=value)

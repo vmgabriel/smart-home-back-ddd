@@ -1,6 +1,7 @@
 from app.lib import domain
 from app.security import services, domain as security_domain
 from app.adapter.uow import model as uow_model
+from app.adapter.jwt import model as jwt_model
 
 
 class AuthenticateUser(domain.Command):
@@ -12,10 +13,11 @@ class CreateUser(domain.Command):
     user: security_domain.PreCreationUser
 
 
-async def authenticate_user(cmd: AuthenticateUser, uow: uow_model.UOW) -> domain.CommandResponse:
+async def authenticate_user(cmd: AuthenticateUser, uow: uow_model.UOW, jwt: jwt_model.AuthJWT) -> domain.CommandResponse:
     with uow.session(type=uow_model.PersistenceType.PERSISTENCE) as session:
         getter_user = session.get_repository(security_domain.UserFinderRepository)
         authentication_response = services.authenticate(
+            jwt=jwt,
             getter_repository=getter_user,
             username=cmd.username, 
             password=cmd.password

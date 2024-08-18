@@ -179,14 +179,12 @@ for domain in _SETTINGS.domains:
             get_migration_of_module_path(migration)
         )
 
-    # TODO: Include in UOW
-    print(f"repositories {repositories}")
-    # TODO: Get Repositories and Inject
+    _LOG_PROVIDER.info(f"repositories {repositories}")
     for repository_path in repositories:
-        print(f"repository path {repository_path}")
+        _LOG_PROVIDER.info(f"repository path {repository_path}")
         for repository in get_classes_of_module_path(file_module=repository_path):
             if "Repository" in repository.__name__:
-                print(f"Adding Repository {repository.__name__}")
+                _LOG_PROVIDER.info(f"Adding Repository {repository.__name__}")
                 _PERSISTENCE_CREATOR.add_repository(repository_type=repository)
 
 

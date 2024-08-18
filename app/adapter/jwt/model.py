@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 import abc
 import pydantic
 import enum
@@ -37,11 +37,26 @@ class JWTData(pydantic.BaseModel):
     gen: datetime.datetime
     exp: datetime.datetime
 
+    def dict(self) -> Dict[str, Any]:
+        return {
+            "user": self.user.dict(),
+            "aud": self.aud,
+            "gen": self.gen.isoformat(),
+            "exp": self.exp.isoformat(),
+        }
+
 
 class RefreshAuthUser(pydantic.BaseModel):
     id: str
     gen: datetime.datetime
     exp: datetime.datetime
+
+    def dict(self) -> Dict[str, Any]:
+        return {
+            "id": self.id,
+            "gen": self.gen.isoformat(),
+            "exp": self.exp.isoformat(),
+        }
 
 
 class StatusCheckJWT(pydantic.BaseModel):
@@ -60,7 +75,7 @@ class AuthJWT(abc.ABC):
         self.log = log
 
     @abc.abstractmethod
-    def encode(self, user: AuthUser, auth: List[str], expiration: Optional[datetime.timedelta] = None) -> EncodedJWT:
+    def encode(self, user: AuthUser, aud: List[str], expiration: Optional[datetime.timedelta] = None) -> EncodedJWT:
         raise NotImplementedError()
 
     @abc.abstractmethod

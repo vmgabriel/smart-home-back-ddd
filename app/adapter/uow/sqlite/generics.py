@@ -49,7 +49,7 @@ class SqliteCRUDGenericRepository(generics.UpdateGenericRepository):
             ",".join(["?" for _ in self.fields]),
         )
         fields = tuple(self._fields(getattr(new, x)) for x in self.fields)
-        print(f"query {query}")
+        _LOG_PROVIDER.info(f"query {query}")
         result = self._session.execute(query, fields)
         new.id = str(next(result)[0])
         return new

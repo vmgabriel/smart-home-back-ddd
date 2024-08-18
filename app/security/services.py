@@ -1,9 +1,14 @@
 import jwt
 
 from app.security import domain
+from app.adapter.jwt import model as jwt_model
 
 
 _INVALID_AUTHENTICATION = domain.AuthenticationResponse(
+    access_token=None,
+    refresh_token=None,
+    generation_datetime=None,
+    expiration_datetime=None,
     message="Invalid Authentication",
     token=None,
     type=None,
@@ -20,16 +25,33 @@ def _find_user_by_username(username: str, getter_repository: domain.UserFinderRe
     return getter_repository.by_username(username=username)
 
 
-def authenticate(getter_repository: domain.UserFinderRepository, username: str, password: str) -> domain.AuthenticationResponse:
+def authenticate(
+    jwt: jwt_model.AuthJWT,
+    getter_repository: domain.UserFinderRepository,
+    username: str,
+    password: str,
+) -> domain.AuthenticationResponse:
     user = _find_user_by_username(username=username, getter_repository=getter_repository)
     if not user or not user.is_auth(password=password):
         return _INVALID_AUTHENTICATION
 
+    user = jwt_model.AuthUser(
+        id=user.id,
+        name=user.name,
+        last_name=user.last_name,
+        username=user.username,
+    )
+
+    encoded = jwt.encode(user=user, aud=["..."])
+
     return domain.AuthenticationResponse(
         status=True,
         message="Valid Authorization",
-        type="Bearer",
-        token="123213213213.123123123.1312312",
+        type=encoded.type,
+        access_token=encoded.access_token,
+        refresh_token=encoded.refresh_token,
+        generation_datetime=encoded.generation,
+        expiration_datetime=encoded.expiration,
     )
 
 

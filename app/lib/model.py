@@ -25,3 +25,7 @@ class HttpStatusType(enum.StrEnum):
 class ResponseType(enum.StrEnum):
     JSON = enum.auto()
     WS = enum.auto()
+
+
+class Audience(enum.StrEnum):
+    GET_PROFILE = "profile:get"

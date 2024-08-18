@@ -6,6 +6,7 @@ from app import lib as lib_models
 from app.lib import domain
 from app.adapter.log import model as log_model
 from app.adapter.uow import model as uow_model
+from app.adapter.jwt import model as jwt_model
 
 
 class AppHttp(pydantic.BaseModel):
@@ -19,6 +20,7 @@ class HttpAdapter(abc.ABC):
     # Infra Required elements
     log: log_model.LogAdapter
     uow: uow_model.UOW
+    jwt: jwt_model.AuthJWT
     
     def __init__(self, log: log_model.LogAdapter) -> None:
         self.routes = []
@@ -36,5 +38,10 @@ class HttpAdapter(abc.ABC):
         raise NotImplemented
     
     @abc.abstractmethod
-    def execute(self, settings: lib_models.settings.Setting, uow: uow_model.UOW) -> AppHttp:
+    def execute(
+        self, 
+        settings: lib_models.settings.Setting, 
+        uow: uow_model.UOW,
+        jwt: jwt_model.AuthJWT,
+    ) -> AppHttp:
         raise NotImplementedError()

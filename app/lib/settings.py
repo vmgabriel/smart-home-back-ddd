@@ -2,6 +2,7 @@ from typing import Dict, List
 
 import pydantic
 import pathlib
+import datetime
 
 from app.lib import model as lib_models 
 
@@ -25,6 +26,7 @@ class Setting(pydantic.BaseModel):
     migration_provider: str = "sqlite"
     route_path_migrations: str = "app/adapter/uow/sqlite/migrations"
     migration_db_name: str = "temporal.db"
+    enviroment_variables_provider: str = "dotenv"
     
     # Meta Documentation
     title: str = "Smart Home Back"
@@ -45,6 +47,15 @@ class Setting(pydantic.BaseModel):
     domains: List[str] = [
         "security",
     ]
+
+    # Security and Auth
+    jwt_provider: str = "pyjwt"
+    auth_type: str = "Bearer"
+    authorization_name_attribute: str = "Authorization"
+    expiration_access_token: datetime.timedelta = datetime.timedelta(hours=2)
+    expiration_refresh_token: datetime.timedelta = datetime.timedelta(days=2)
+    auth_access_token_secret: str = ""
+    auth_refresh_token_secret: str = ""
     
     @property
     def has_debug(self) -> bool:

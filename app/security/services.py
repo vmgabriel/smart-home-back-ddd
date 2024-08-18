@@ -1,3 +1,5 @@
+import jwt
+
 from app.security import domain
 
 
@@ -22,6 +24,7 @@ def authenticate(getter_repository: domain.UserFinderRepository, username: str, 
     user = _find_user_by_username(username=username, getter_repository=getter_repository)
     if not user or not user.is_auth(password=password):
         return _INVALID_AUTHENTICATION
+
     return domain.AuthenticationResponse(
         status=True,
         message="Valid Authorization",

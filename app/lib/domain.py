@@ -35,7 +35,12 @@ class EntrypointWeb(pydantic.BaseModel):
     tags: List[str] = pydantic.Field(default_factory=list)
     status_code: int = 200
     method: model.HttpStatusType = model.HttpStatusType.GET
+    audiences: List[model.Audience] = pydantic.Field(default_factory=list)
     has_token: bool = True
+
+    def get_str_audiencies(self) -> Generator[None, str, None]:
+        for audience in self.audiences:
+            yield str(audience)
     
 
 class CRUDEntrypointWeb:

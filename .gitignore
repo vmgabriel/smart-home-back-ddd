@@ -2,3 +2,5 @@
 *.pyc
 
 temporal.db
+
+.venv

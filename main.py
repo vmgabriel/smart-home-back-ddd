@@ -6,7 +6,7 @@ import importlib.util
 
 from app import lib
 from app.lib import domain
-from app.adapter import http, server, log, uow
+from app.adapter import http, server, log, uow, jwt
 from app.adapter.uow import model as uow_model
 
 
@@ -20,6 +20,7 @@ _PERSISTENCE_CREATOR = uow_model.PersistenceCreator(
     settings=_SETTINGS,
     persistence=uow.persistence_get(_SETTINGS.migration_provider),
 )
+_JWT_PROVIDER = jwt.get(_SETTINGS.jwt_provider)(settings=_SETTINGS, log=_LOG_PROVIDER)
 
 
 _PATH_DISCARD_APP: List[str] = ["lib", "adapter"]
@@ -200,5 +201,5 @@ _UOW = uow.uow_get(_SETTINGS.migration_provider)(
 
 
 if __name__ == "__main__":
-    app = _HTTP_PROVIDER.execute(settings=_SETTINGS, uow=_UOW)
+    app = _HTTP_PROVIDER.execute(settings=_SETTINGS, uow=_UOW, jwt=_JWT_PROVIDER)
     _SERVER_PROVIDER.execute(port=app, settings=_SETTINGS)

@@ -12,6 +12,7 @@ class Authenticate(domain.EntrypointWeb):
     summary: str = "Autenticate a User for generate a Valid Token"
     description: str = "Based in username and password, generate a valid token or generate an error"
     command: Type[domain.Command] | None = commands.AuthenticateUser
+    has_token: bool = False
     responses: List[domain.ExampleResponse] = [
         domain.ExampleResponse(
             status_code=200,
@@ -55,6 +56,7 @@ class CreateUser(domain.EntrypointWeb):
     description: str = "Based in info getted create a new user"
     command: Type[domain.Command] | None = commands.CreateUser
     status_code: int = 201
+    has_token: bool = True
     responses: List[domain.ExampleResponse] = [
         domain.ExampleResponse(
             status_code=201,

@@ -10,7 +10,9 @@ class Authenticate(domain.EntrypointWeb):
     route: str = "/auth"
     name: str = "Authenticate a User"
     summary: str = "Autenticate a User for generate a Valid Token"
-    description: str = "Based in username and password, generate a valid token or generate an error"
+    description: str = (
+        "Based in username and password, generate a valid token or generate an error"
+    )
     command: Type[domain.Command] | None = commands.AuthenticateUser
     has_token: bool = False
     responses: List[domain.ExampleResponse] = [
@@ -24,10 +26,10 @@ class Authenticate(domain.EntrypointWeb):
                     "status": True,
                     "message": "Valid Authorization",
                     "type": "Bearer",
-                    "token": "123213213213.123123123.1312312"
+                    "token": "123213213213.123123123.1312312",
                 },
-                "errors": []
-            }
+                "errors": [],
+            },
         ),
         domain.ExampleResponse(
             status_code=200,
@@ -41,12 +43,45 @@ class Authenticate(domain.EntrypointWeb):
                         "status": False,
                         "message": "Invalid Authentication",
                         "type": None,
-                        "token": None
+                        "token": None,
                     }
-                ]
-            }
+                ],
+            },
         ),
     ]
+
+
+class RefreshAuthenticate(domain.EntrypointWeb):
+    method: model.HttpStatusType = model.HttpStatusType.POST
+    route: str = "/auth/refresh"
+    name: str = "Refresh Authenticate a User"
+    summary: str = "Refresh Autenticate a User for generate a Valid Token"
+    description: str = (
+        "Based in username and password, generate a valid refresh token or generate an error"
+    )
+    command: Type[domain.Command] | None = commands.RefreshAuthenticate
+    has_token: bool = False
+    responses: List[domain.ExampleResponse] = [
+        domain.ExampleResponse(
+            status_code=200,
+            example_name="valid refresh authentication",
+            description="Valid Refresh Authentication and generate valid token",
+            content={
+                "trace_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                "payload": {
+                    "status": True,
+                    "message": "Valid Authorization",
+                    "type": "Bearer",
+                    "access_token": "1111",
+                    "refresh_token": "11111",
+                    "generation_datetime": "2024-08-19T20:00:04.020555Z",
+                    "expiration_datetime": "2024-08-19T22:00:04.020555Z",
+                },
+                "errors": [],
+            },
+        )
+    ]
+
 
 class CreateUser(domain.EntrypointWeb):
     method: model.HttpStatusType = model.HttpStatusType.PUT
@@ -75,11 +110,11 @@ class CreateUser(domain.EntrypointWeb):
                         "deleted_at": None,
                         "name": "Daissi",
                         "last_name": "Gonzalez",
-                        "username": "timdx"
-                    }
+                        "username": "timdx",
+                    },
                 },
-                "errors": []
-            }
+                "errors": [],
+            },
         ),
         domain.ExampleResponse(
             status_code=201,
@@ -92,9 +127,9 @@ class CreateUser(domain.EntrypointWeb):
                     {
                         "created": False,
                         "message": "User has Already Created",
-                        "user": None
+                        "user": None,
                     }
-                ]
-            }
+                ],
+            },
         ),
     ]

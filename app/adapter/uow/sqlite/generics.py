@@ -93,7 +93,7 @@ class SqliteFinderRepository(generics.GetterGenericRepository):
                 self.table_name,
                 to_filter.filter.definition
             ),
-            tuple(to_filter.generate_values)
+            tuple(to_filter.generate_values())
         )
         found = res.fetchone()
         if not found:

@@ -64,7 +64,7 @@ class AuthPyJWT(model.AuthJWT):
                 token, 
                 self.settings.auth_access_token_secret, 
                 audience=allowed_aud, 
-                algorithm="HS256"
+                algorithms=["HS256"]
             )
             data = model.JWTData(**decoded)
         except jwt.exceptions.InvalidAudienceError:
@@ -101,16 +101,17 @@ class AuthPyJWT(model.AuthJWT):
 
         try:
             decoded = jwt.decode(
-                token, 
-                self.settings.auth_refresh_token_secret,
-                algorithms="HS256",
+                jwt=token, 
+                key=self.settings.auth_refresh_token_secret,
+                algorithms=["HS256"],
             )
             data = model.RefreshAuthUser(**decoded)
         except jwt.exceptions.ExpiredSignatureError:
             status = False
             message = "Not valid token, expired signature"
             type = model.StatusType.EXPIRED
-        except jwt.exceptions.DecodeError:
+        except jwt.exceptions.DecodeError as exc:
+            print(f"exc {exc}")
             status = False
             message = "Not Complete Information in Token"
             type = model.StatusType.NOT_COMPLETE

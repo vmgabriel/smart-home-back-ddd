@@ -13,6 +13,10 @@ class CreateUser(domain.Command):
     user: security_domain.PreCreationUser
 
 
+class RefreshAuthenticate(domain.Command):
+    refresh_token:  str
+
+
 async def authenticate_user(cmd: AuthenticateUser, uow: uow_model.UOW, jwt: jwt_model.AuthJWT) -> domain.CommandResponse:
     with uow.session(type=uow_model.PersistenceType.PERSISTENCE) as session:
         getter_user = session.get_repository(security_domain.UserFinderRepository)
@@ -21,6 +25,21 @@ async def authenticate_user(cmd: AuthenticateUser, uow: uow_model.UOW, jwt: jwt_
             getter_repository=getter_user,
             username=cmd.username, 
             password=cmd.password
+        )
+    return domain.CommandResponse(
+        payload=authentication_response.dict() if authentication_response.status else {},
+        trace_id=str(cmd.trace_id),
+        errors=[authentication_response.dict()] if not authentication_response.status else [],
+    )
+
+
+async def refresh_authenticate_user(cmd: RefreshAuthenticate, uow: uow_model.UOW, jwt: jwt_model.AuthJWT) -> domain.CommandResponse:
+    with uow.session(type=uow_model.PersistenceType.PERSISTENCE) as session:
+        getter_user = session.get_repository(security_domain.UserFinderRepository)
+        authentication_response = services.refresh(
+            jwt=jwt,
+            getter_repository=getter_user,
+            refresh_token=cmd.refresh_token,
         )
     return domain.CommandResponse(
         payload=authentication_response.dict() if authentication_response.status else {},

@@ -41,8 +41,8 @@ class JWTData(pydantic.BaseModel):
         return {
             "user": self.user.dict(),
             "aud": self.aud,
-            "gen": self.gen.isoformat(),
-            "exp": self.exp.isoformat(),
+            "gen": self.gen.timestamp(),
+            "exp": self.exp.timestamp(),
         }
 
 
@@ -54,8 +54,8 @@ class RefreshAuthUser(pydantic.BaseModel):
     def dict(self) -> Dict[str, Any]:
         return {
             "id": self.id,
-            "gen": self.gen.isoformat(),
-            "exp": self.exp.isoformat(),
+            "gen": self.gen.timestamp(),
+            "exp": self.exp.timestamp(),
         }
 
 

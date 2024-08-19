@@ -41,7 +41,7 @@ class Setting(pydantic.BaseModel):
     
     # Server
     host: str = "0.0.0.0"
-    port: int = 8080
+    port: int = 3030
     
     # Domains
     domains: List[str] = [

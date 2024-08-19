@@ -11,8 +11,11 @@ class UvicornAdapter(model.ServerAdapter):
         port: http_model.AppHttp, 
         settings: lib_models.settings.Setting
     ) -> None:
+        print(f"port.app - {port.instance}")
         uvicorn.run(
             app=port.instance, 
             host=settings.host,
-            port=settings.port
+            port=settings.port,
+            reload=True,
+            workers=1,
         )

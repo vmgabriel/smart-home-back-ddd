@@ -1,0 +1,36 @@
+services:
+  app:
+    build:
+      context: .
+    ports:
+      - 3030:3030
+    volumes:
+      - .:/app
+    networks:
+      - cache-network
+    environment:
+      - VIRTUAL_HOST=my.home.local
+      - VIRTUAL_PORT=3030
+    restart: on-failure
+    command: >
+      sh -c "python main.py"
+
+  proxy:
+    image: jwilder/nginx-proxy
+    container_name: proxy
+    ports:
+      - 80:80
+      - 443:443
+    environment:
+      - DEFAULT_HOST=my.home.local
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./certs:/etc/nginx/certs
+    networks:
+      - cache-network
+    depends_on:
+      - app
+
+networks:
+  cache-network:
+    driver: bridge

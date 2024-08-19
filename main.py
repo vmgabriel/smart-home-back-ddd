@@ -10,6 +10,9 @@ from app.adapter import http, server, log, uow, jwt
 from app.adapter.uow import model as uow_model
 
 
+_RELOAD = False
+
+
 _SETTINGS = lib.SETTINGS
 _LOG_PROVIDER = log.get(_SETTINGS.log_provider)(settings=_SETTINGS)
 _HTTP_PROVIDER = http.get(_SETTINGS.http_provider)(log=_LOG_PROVIDER)
@@ -198,6 +201,12 @@ _UOW = uow.uow_get(_SETTINGS.migration_provider)(
 )
 
 
+app = _HTTP_PROVIDER.execute(settings=_SETTINGS, uow=_UOW, jwt=_JWT_PROVIDER)
+
+
 if __name__ == "__main__":
-    app = _HTTP_PROVIDER.execute(settings=_SETTINGS, uow=_UOW, jwt=_JWT_PROVIDER)
-    _SERVER_PROVIDER.execute(port=app, settings=_SETTINGS)
+    if reload:    
+        import uvicorn
+        uvicorn.run("__main__:app", host="0.0.0.0", port=3030, reload=True)
+    else:
+        _SERVER_PROVIDER.execute(port=app, settings=_SETTINGS)

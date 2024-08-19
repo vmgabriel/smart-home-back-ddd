@@ -8,8 +8,8 @@ from app.security import commands
 class Authenticate(domain.EntrypointWeb):
     method: model.HttpStatusType = model.HttpStatusType.POST
     route: str = "/auth"
-    name: str = "Authenticate a User"
-    summary: str = "Autenticate a User for generate a Valid Token"
+    name: str = "Authenticate the User"
+    summary: str = "Autenticate the User for generate a Valid Token"
     description: str = (
         "Based in username and password, generate a valid token or generate an error"
     )

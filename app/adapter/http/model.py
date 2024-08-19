@@ -12,6 +12,9 @@ from app.adapter.jwt import model as jwt_model
 class AppHttp(pydantic.BaseModel):
     instance: object | None = None
 
+    def __call__(self) -> None:
+        return self.instance
+
 
 class HttpAdapter(abc.ABC):
     routes: List[domain.EntrypointWeb]

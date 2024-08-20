@@ -23,7 +23,7 @@ class Setting(pydantic.BaseModel):
     server_provider: str = "uvicorn"
     log_provider: str = "logging"
     
-    migration_provider: str = "sqlite"
+    migration_provider: str = "psycopg"
     route_path_migrations: str = "app/adapter/uow/sqlite/migrations"
     migration_db_name: str = "temporal.db"
     enviroment_variables_provider: str = "dotenv"
@@ -56,6 +56,13 @@ class Setting(pydantic.BaseModel):
     expiration_refresh_token: datetime.timedelta = datetime.timedelta(days=2)
     auth_access_token_secret: str = ""
     auth_refresh_token_secret: str = ""
+
+    # Postgres Data
+    postgres_port: str = "5432"
+    postgres_dbname: str = ""
+    postgres_host: str = ""
+    postgres_username: str = ""
+    postgres_password: str = ""
     
     @property
     def has_debug(self) -> bool:

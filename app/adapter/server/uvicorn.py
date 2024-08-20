@@ -16,6 +16,4 @@ class UvicornAdapter(model.ServerAdapter):
             app=port.instance, 
             host=settings.host,
             port=settings.port,
-            reload=True,
-            workers=1,
         )

@@ -5,10 +5,12 @@ import enum
 from app.adapter.log import model as adapter_model, logging
 from app.adapter.uow import model as uow_model
 from app.adapter.uow.sqlite import migrator, uow as sqlite_uow
+from app.adapter.uow.psycopg import migrator as psycopg_migrator, uow as psycopg_uow
 
 
 class PersistencyAdapter(enum.StrEnum):
     SQLITE = enum.auto()
+    PSYCOPG = enum.auto()
     FAKE = enum.auto()
     
     @staticmethod
@@ -21,16 +23,19 @@ class PersistencyAdapter(enum.StrEnum):
         
 migration_ports: Dict[PersistencyAdapter, Type[uow_model.Migration]] = {
     PersistencyAdapter.SQLITE: migrator.SqliteMigration,
+    PersistencyAdapter.PSYCOPG: psycopg_migrator.PsycopgMigration,
     PersistencyAdapter.FAKE: migrator.SqliteMigration,
 }
 
 uow_port: Dict[PersistencyAdapter, Type[uow_model.UOW]] = {
     PersistencyAdapter.SQLITE: sqlite_uow.SQLiteUOW,
+    PersistencyAdapter.PSYCOPG: psycopg_uow.PsycopgUOW,
     PersistencyAdapter.FAKE: sqlite_uow.SQLiteUOW,
 }
 
 persistence_ports:Dict[PersistencyAdapter, Type[uow_model.Persistence]] = {
     PersistencyAdapter.SQLITE: sqlite_uow.SQLitePersistence,
+    PersistencyAdapter.PSYCOPG: psycopg_uow.PsycopgPersistence,
     PersistencyAdapter.FAKE: sqlite_uow.SQLitePersistence,
 }
 

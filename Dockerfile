@@ -5,6 +5,9 @@ ENV PYTHONUNBUFFERED 1
 
 RUN apt-get update --fix-missing && apt-get --yes upgrade
 
+RUN apt-get --yes install libpq5
+
+
 RUN python3 -m pip install --upgrade pip
 
 COPY requirements.txt /app/requirements.txt

@@ -31,6 +31,22 @@ services:
     depends_on:
       - app
 
+  db:
+    image: postgres:15.8-bullseye
+    restart: always
+    environment:
+      - POSTGRES_USER=ghost
+      - POSTGRES_PASSWORD=rider
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - cache-network
+    ports:
+      - "5432:5432"
+
 networks:
   cache-network:
     driver: bridge
+
+volumes:
+  pgdata:

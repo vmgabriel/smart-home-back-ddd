@@ -205,7 +205,7 @@ app = _HTTP_PROVIDER.execute(settings=_SETTINGS, uow=_UOW, jwt=_JWT_PROVIDER)
 
 
 if __name__ == "__main__":
-    if reload:    
+    if _RELOAD:    
         import uvicorn
         uvicorn.run("__main__:app", host="0.0.0.0", port=3030, reload=True)
     else:

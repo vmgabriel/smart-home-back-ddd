@@ -178,7 +178,7 @@ for domain in _SETTINGS.domains:
     migrations, repositories = get_repositories_and_migrations_by_domain(_PATH_APP / domain)
     for migration in migrations:
         _migrate(
-            f"{domain}_{(migrations[0].name).split('.')[:-1][0]}", 
+            f"{domain}_{(migration.name).split(".")[:-1][0]}", 
             get_migration_of_module_path(migration)
         )
 

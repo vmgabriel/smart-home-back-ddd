@@ -4,6 +4,10 @@ import hashlib
 import pydantic
 import datetime
 from app.adapter.uow import model, generics
+from app.lib import model as lib_model
+
+
+_AUD_CLIENT = str(lib_model.Role.CLIENT)
 
 
 def _encrypt_password(password) -> str:
@@ -15,6 +19,7 @@ class User(model.RepositoryData):
     last_name: str
     username: str
     password: str
+    permissions: str
 
     @staticmethod
     def create(name: str, last_name: str, username: str, password: str) -> "User":
@@ -26,6 +31,7 @@ class User(model.RepositoryData):
             password=_encrypt_password(password),
             created_at=datetime.datetime.now(),
             updated_at=datetime.datetime.now(),
+            permissions=_AUD_CLIENT,
             actived=True,
             deleted_at=None,
         )

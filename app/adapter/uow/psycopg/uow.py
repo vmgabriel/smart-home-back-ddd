@@ -10,13 +10,13 @@ class PsycopgPersistence(model.Persistence):
     _connection: psycopg.Connection
     
     def commit(self) -> None:
-        self._session.commit()
+        self._connection.commit()
     
     def rollback(self) -> None:
-        self._session.rollback()
+        self._connection.rollback()
         
     def flush(self) -> None:
-        ...
+        self._connection.flush()
 
 
 
@@ -30,22 +30,22 @@ class PsycopgUOW(model.UOW):
         persistence_creator: model.PersistenceCreator,
     ) -> None:
         super().__init__(log=log, settings=settings, persistence_creator=persistence_creator)
-        conn_data = "postgresql://{user}:{password}@{host}:{port}/{dbname}".format(
+        self._conn_data = "postgresql://{user}:{password}@{host}:{port}/{dbname}".format(
             dbname=self.settings.postgres_dbname, 
             user=self.settings.postgres_username, 
             password=self.settings.postgres_password,
             host=self.settings.postgres_host,
             port=self.settings.postgres_port,
         )
-        self.con = psycopg.connect(conninfo=conn_data)
         
     def _open(self) -> Tuple[psycopg.Connection, psycopg.Cursor]:
+        self.con = psycopg.connect(conninfo=self._conn_data)
         cur = self.con.cursor()
         self.log.info("Opening Session DB")
         return self.con, cur
     
     def _close(self, session: psycopg.Cursor) -> None:
-        self.cur.close()
+        session.close()
         self.con.close()
         self.log.info("Closed Session DB")
         

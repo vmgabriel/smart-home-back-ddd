@@ -91,7 +91,7 @@ class CreateUser(domain.EntrypointWeb):
     description: str = "Based in info getted create a new user"
     command: Type[domain.Command] | None = commands.CreateUser
     status_code: int = 201
-    has_token: bool = True
+    has_token: bool = False
     responses: List[domain.ExampleResponse] = [
         domain.ExampleResponse(
             status_code=201,

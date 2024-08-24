@@ -5,6 +5,7 @@ import enum
 import datetime
 
 from app import lib as lib_models
+from app.lib import model as model_lib
 from app.adapter.log import model as log_model
 
 
@@ -36,6 +37,12 @@ class JWTData(pydantic.BaseModel):
     aud: List[str]
     gen: datetime.datetime
     exp: datetime.datetime
+
+    def has_permission(self, auds: List[str]) -> bool:
+        role = list(filter(lambda aud: aud.startswith("role:"), self.aud))[0]
+        all_auds_with_role = model_lib.ROLE_PERMISSIONS[model_lib.Role(role)]
+        current_auds = aud + all_auds_with_role
+        return any(aud in current_auds for aud in auds)
 
     def dict(self) -> Dict[str, Any]:
         return {

@@ -17,7 +17,8 @@ USER_FIELDS: List[str] = [
     "created_at",
     "updated_at",
     "deleted_at",
-    "actived"
+    "permissions",
+    "actived",
 ]
 
 
@@ -67,7 +68,8 @@ class UserGetterPsycopgRepository(domain.UserFinderRepository, psycopg_generics.
             last_name=data[3],
             username=data[4],
             password=data[5],
-            created_at=datetime.datetime.fromisoformat(data[6]),
-            updated_at=datetime.datetime.fromisoformat(data[7]),
-            deleted_at=datetime.datetime.fromisoformat(data[8]) if data[8] else None,
+            created_at=data[6],
+            updated_at=data[7],
+            deleted_at=data[8],
+            permissions=data[9],
         )

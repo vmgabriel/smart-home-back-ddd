@@ -49,14 +49,14 @@ def authenticate(
     if not user or not user.is_auth(password=password):
         return _INVALID_AUTHENTICATION
 
-    user = jwt_model.AuthUser(
+    auth_user = jwt_model.AuthUser(
         id=user.id,
         name=user.name,
         last_name=user.last_name,
         username=user.username,
     )
 
-    encoded = jwt.encode(user=user, aud=["..."])
+    encoded = jwt.encode(user=auth_user, aud=user.permissions.split(","))
 
     return domain.AuthenticationResponse(
         status=True,
@@ -89,7 +89,7 @@ def refresh(
         username=user.username,
     )
 
-    encoded = jwt.encode(user=user_auth, aud=["..."])
+    encoded = jwt.encode(user=user_auth, aud=user.permissions.split(","))
 
     return domain.AuthenticationResponse(
         status=True,

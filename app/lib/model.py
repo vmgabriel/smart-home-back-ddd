@@ -1,3 +1,4 @@
+from typing import Dict, List
 import enum
 
 
@@ -27,5 +28,19 @@ class ResponseType(enum.StrEnum):
     WS = enum.auto()
 
 
+class Role(enum.StrEnum):
+    CLIENT = "role:client"
+    ADMIN = "role:admin"
+
 class Audience(enum.StrEnum):
     GET_PROFILE = "profile:get"
+
+
+ROLE_PERMISSIONS: Dict[Role, List[Audience]] = {
+    Role.ADMIN: [
+        Audience.GET_PROFILE,
+    ],
+    Role.CLIENT: [
+        Audience.GET_PROFILE
+    ],
+}

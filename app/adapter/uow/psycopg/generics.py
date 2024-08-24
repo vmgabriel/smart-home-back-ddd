@@ -21,6 +21,7 @@ _IS_ACTIVED_FILTER = generics.Filter(definition="actived = %s")
 class PsycopgCRUDGenericRepository(generics.UpdateGenericRepository):
     table_name: str
     fields: List[str]
+    _session: psycopg.Cursor
 
     def __init__(
         self,
@@ -34,14 +35,9 @@ class PsycopgCRUDGenericRepository(generics.UpdateGenericRepository):
         self.fields = fields
 
     def _fields(self, value: Any) -> str:
+        if isinstance(value, list):
+            return ",".join(value)
         return value
-        # if value == None:
-        #     return ""
-        # match type(value):
-        #     case datetime.datetime:
-        #         return cast(datetime.datetime, value).isoformat()
-        #     case _:
-        #         return value
     
     def create(self, new: model.RepositoryData) -> model.RepositoryData:
         query = _INSERT_DEFAULT.format(
@@ -50,9 +46,9 @@ class PsycopgCRUDGenericRepository(generics.UpdateGenericRepository):
             ",".join(["%s" for _ in self.fields]),
         )
         fields = tuple(self._fields(getattr(new, x)) for x in self.fields)
-        _LOG_PROVIDER.info(f"query {query}")
+        self.log.info(f"query {query}")
         result = self._session.execute(query, fields)
-        new.id = str(next(result)[0])
+        new.id = result.fetchone()[0]
         return new
             
     def update(self, id: Any, to_update: model.RepositoryData) -> model.RepositoryData:

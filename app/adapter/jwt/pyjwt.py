@@ -63,10 +63,11 @@ class AuthPyJWT(model.AuthJWT):
             decoded = jwt.decode(
                 token, 
                 self.settings.auth_access_token_secret, 
-                audience=allowed_aud, 
                 algorithms=["HS256"]
             )
             data = model.JWTData(**decoded)
+            if not data.has_permission(auds=allowed_aud):
+                raise jwt.exceptions.InvalidAudienceError()
         except jwt.exceptions.InvalidAudienceError:
             status = False
             message = "You don't have permissions for this resource"

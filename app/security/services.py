@@ -2,6 +2,7 @@ import jwt
 
 from app.security import domain
 from app.adapter.jwt import model as jwt_model
+from app.adapter.uow import model as uow_model
 
 
 _INVALID_AUTHENTICATION = domain.AuthenticationResponse(
@@ -33,6 +34,13 @@ _USER_HAS_ALREADY_EXISTS = domain.UserCreatedResponse(
 
 def _find_user_by_id(id: str, getter_repository: domain.UserFinderRepository) -> domain.User | None:
     return getter_repository.get_by_id(id=id)
+
+
+def _find_profile_by_id(id: str, getter_repository: domain.ProfileFinderRepository) -> domain.Profile | None:
+    try:
+        return getter_repository.get_by_id(id=id)
+    except uow_model.RepositoryNotFoundError:
+        return None
 
 
 def _find_user_by_username(username: str, getter_repository: domain.UserFinderRepository) -> domain.User | None:
@@ -121,3 +129,7 @@ def create_a_new_user(
         message="Created Correctly",
         user=data_new_user,
     )
+
+
+def get_user_information(id: str, getter_repository: domain.ProfileFinderRepository,) -> domain.Profile | None:
+    return _find_profile_by_id(id=id, getter_repository=getter_repository)

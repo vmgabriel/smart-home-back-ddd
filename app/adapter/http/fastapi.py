@@ -96,7 +96,6 @@ class FastApiAdapter(model.HttpAdapter):
         self.log.info(f"Adding Command [{route.command.__name__}]")
 
         command_execution_request = {
-            "user": ...,  # TODO: Inject user if use token
             "uow": self.uow,
             "jwt": self.jwt,
             "request": fastapi.Request,
@@ -123,10 +122,22 @@ class FastApiAdapter(model.HttpAdapter):
                     content={"payload": {}, "errors": [{"message": response.message, "type": response.type.value}]}, 
                     status_code=403
                 )
-            if "user" in parameters:
+            if "user" in function_required_parameters:
                 parameters["user"] = response.data
 
         if inspect.iscoroutinefunction(command_function):
+            if route.method == lib_model.HttpStatusType.GET:
+                @decorator_router
+                async def callable_context(
+                    token: Optional[str] = fastapi.Depends(oauth2_scheme) if route.has_token else None,
+                ) -> domain.CommandResponse:
+                    if route.has_token:
+                        fail = check_authentication(token=token)
+                        if fail:
+                            return fail
+                    return await command_function(**parameters, cmd=route.command())
+                return
+
             @decorator_router
             async def callable_context(
                 payload: route.command,

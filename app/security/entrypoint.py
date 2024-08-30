@@ -133,3 +133,15 @@ class CreateUser(domain.EntrypointWeb):
             },
         ),
     ]
+
+
+class GetProfile(domain.EntrypointWeb):
+    method: model.HttpStatusType = model.HttpStatusType.GET
+    route: str = "/users/myself"
+    name: str = "Get Data for Profile of User"
+    summary: str = "Based in info of user get the current user"
+    description: str = "Context of current user"
+    command: Type[domain.Command] | None = commands.GetProfile
+    status_code: int = 200
+    audiences: List[model.Audience] = [model.Audience.GET_PROFILE]
+    has_token: bool = True

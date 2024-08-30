@@ -41,8 +41,12 @@ class JWTData(pydantic.BaseModel):
     def has_permission(self, auds: List[str]) -> bool:
         role = list(filter(lambda aud: aud.startswith("role:"), self.aud))[0]
         all_auds_with_role = model_lib.ROLE_PERMISSIONS[model_lib.Role(role)]
-        current_auds = aud + all_auds_with_role
-        return any(aud in current_auds for aud in auds)
+        current_user_auds = [
+            model_lib.Audience(aud)
+            for aud in self.aud
+            if model_lib.Audience.exists(aud)
+        ] + all_auds_with_role
+        return any(model_lib.Audience(aud) in current_user_auds for aud in auds)
 
     def dict(self) -> Dict[str, Any]:
         return {

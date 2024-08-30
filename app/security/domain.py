@@ -40,6 +40,12 @@ class User(model.RepositoryData):
         return _encrypt_password(password) == self.password
 
 
+class Profile(model.RepositoryData):
+    email: str
+    phone: str
+    icon_url: Optional[str] = ""
+
+
 class PreCreationUser(pydantic.BaseModel):
     name: str
     last_name: str
@@ -58,6 +64,10 @@ class UserFinderRepository(generics.Getter):
     @abc.abstractmethod
     def by_username(self, username: str) -> User | None:
         raise NotImplementedError()
+
+
+class ProfileFinderRepository(generics.Getter):
+    ...
 
 
 class AuthenticationResponse(pydantic.BaseModel):

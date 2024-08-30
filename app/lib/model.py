@@ -35,12 +35,21 @@ class Role(enum.StrEnum):
 class Audience(enum.StrEnum):
     GET_PROFILE = "profile:get"
 
+    @staticmethod
+    def exists(name: str) -> bool:
+        try:
+            Audience(name)
+        except ValueError:
+            return False
+        return True
+
+
 
 ROLE_PERMISSIONS: Dict[Role, List[Audience]] = {
     Role.ADMIN: [
         Audience.GET_PROFILE,
     ],
     Role.CLIENT: [
-        Audience.GET_PROFILE
+        Audience.GET_PROFILE,
     ],
 }

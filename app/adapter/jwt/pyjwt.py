@@ -63,7 +63,8 @@ class AuthPyJWT(model.AuthJWT):
             decoded = jwt.decode(
                 token, 
                 self.settings.auth_access_token_secret, 
-                algorithms=["HS256"]
+                algorithms=["HS256"],
+                options={"verify_aud": False},
             )
             data = model.JWTData(**decoded)
             if not data.has_permission(auds=allowed_aud):

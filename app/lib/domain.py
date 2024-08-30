@@ -1,4 +1,4 @@
-from typing import Generator, List, Dict, Any, Type
+from typing import Generator, List, Dict, Any, Type, Optional
 
 import pydantic
 import uuid
@@ -14,7 +14,7 @@ class CommandResponse(pydantic.BaseModel):
 
 
 class Command(pydantic.BaseModel):
-    trace_id: uuid.UUID = pydantic.Field(default_factory=uuid.uuid4)
+    trace_id: Optional[uuid.UUID] = pydantic.Field(default_factory=uuid.uuid4)
 
 
 class ExampleResponse(pydantic.BaseModel):

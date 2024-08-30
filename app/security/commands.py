@@ -17,6 +17,10 @@ class RefreshAuthenticate(domain.Command):
     refresh_token:  str
 
 
+class GetProfile(domain.Command):
+    ...
+
+
 async def authenticate_user(cmd: AuthenticateUser, uow: uow_model.UOW, jwt: jwt_model.AuthJWT) -> domain.CommandResponse:
     with uow.session(type=uow_model.PersistenceType.PERSISTENCE) as session:
         getter_user = session.get_repository(security_domain.UserFinderRepository)
@@ -62,4 +66,17 @@ async def create_new_user(cmd: CreateUser, uow: uow_model.UOW) -> domain.Command
         payload=response.dict() if response.created else {},
         trace_id=str(cmd.trace_id),
         errors=[response.dict()] if not response.created else [],
+    )
+
+
+async def get_profile(cmd: GetProfile, user: jwt_model.JWTData, uow: uow_model.UOW) -> domain.CommandResponse:
+    profile = None
+    with uow.session(type=uow_model.PersistenceType.PERSISTENCE) as session:
+        getter_profile = session.get_repository(security_domain.ProfileFinderRepository)
+        profile = services.get_user_information(user.user.id, getter_repository=getter_profile)
+    
+    return domain.CommandResponse(
+        payload=profile.dict() if profile else {},
+        trace_id=str(cmd.trace_id),
+        errors=[],
     )

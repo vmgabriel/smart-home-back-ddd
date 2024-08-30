@@ -34,6 +34,7 @@ class Role(enum.StrEnum):
 
 class Audience(enum.StrEnum):
     GET_PROFILE = "profile:get"
+    UPDATE_PROFILE = "profile:update"
 
     @staticmethod
     def exists(name: str) -> bool:
@@ -47,9 +48,13 @@ class Audience(enum.StrEnum):
 
 ROLE_PERMISSIONS: Dict[Role, List[Audience]] = {
     Role.ADMIN: [
+        # Current Profile
         Audience.GET_PROFILE,
+        Audience.UPDATE_PROFILE,
     ],
     Role.CLIENT: [
+        # Current Profile
         Audience.GET_PROFILE,
+        Audience.UPDATE_PROFILE,
     ],
 }

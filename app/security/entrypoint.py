@@ -145,3 +145,15 @@ class GetProfile(domain.EntrypointWeb):
     status_code: int = 200
     audiences: List[model.Audience] = [model.Audience.GET_PROFILE]
     has_token: bool = True
+
+
+class UpsertProfile(domain.EntrypointWeb):
+    method: model.HttpStatusType = model.HttpStatusType.PUT
+    route: str = "/users/myself"
+    name: str = "Update Profile of Myself User"
+    summary: str = "Update Profile of Myself User"
+    description: str = "Update Porfile of Myself User"
+    command: Type[domain.Command] | None = commands.UpsertMyselfProfile
+    status_code: int = 201
+    audiences: List[model.Audience] = [model.Audience.UPDATE_PROFILE]
+    has_token: bool = True

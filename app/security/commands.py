@@ -21,6 +21,10 @@ class GetProfile(domain.Command):
     ...
 
 
+class UpsertMyselfProfile(domain.Command):
+    profile: security_domain.PreUpdateProfile
+
+
 async def authenticate_user(cmd: AuthenticateUser, uow: uow_model.UOW, jwt: jwt_model.AuthJWT) -> domain.CommandResponse:
     with uow.session(type=uow_model.PersistenceType.PERSISTENCE) as session:
         getter_user = session.get_repository(security_domain.UserFinderRepository)
@@ -74,6 +78,27 @@ async def get_profile(cmd: GetProfile, user: jwt_model.JWTData, uow: uow_model.U
     with uow.session(type=uow_model.PersistenceType.PERSISTENCE) as session:
         getter_profile = session.get_repository(security_domain.ProfileFinderRepository)
         profile = services.get_user_information(user.user.id, getter_repository=getter_profile)
+    
+    return domain.CommandResponse(
+        payload=profile.dict() if profile else {},
+        trace_id=str(cmd.trace_id),
+        errors=[],
+    )
+
+
+async def upsert_myself_profile(cmd: UpsertMyselfProfile, user: jwt_model.JWTData, uow: uow_model.UOW) -> domain.CommandResponse:
+    profile = None
+    with uow.session(type=uow_model.PersistenceType.PERSISTENCE) as session:
+        getter_profile = session.get_repository(security_domain.ProfileFinderRepository)
+        persistence_profile = session.get_repository(security_domain.ProfileCreatorRepository)
+
+        profile = services.upsert_user_information(
+            id=user.user.id,
+            getter_repository=getter_profile,
+            persistence_repository=persistence_profile,
+            profile_data=cmd.profile
+        )
+        session.commit()
     
     return domain.CommandResponse(
         payload=profile.dict() if profile else {},

@@ -131,5 +131,23 @@ def create_a_new_user(
     )
 
 
-def get_user_information(id: str, getter_repository: domain.ProfileFinderRepository,) -> domain.Profile | None:
+def get_user_information(id: str, getter_repository: domain.ProfileFinderRepository) -> domain.Profile | None:
     return _find_profile_by_id(id=id, getter_repository=getter_repository)
+
+
+def upsert_user_information(
+    id: str,
+    getter_repository: domain.ProfileFinderRepository,
+    persistence_repository: domain.ProfileCreatorRepository, 
+    profile_data: domain.PreUpdateProfile,
+) -> domain.ProfileUpdatedResponse:
+    profile = _find_profile_by_id(id=id, getter_repository=getter_repository)
+    if profile:
+        profile = persistence_repository.update(id=id, to_update=profile.update(profile_data))
+    else:
+        profile = persistence_repository.create(new=profile_data.to_profile(id=id))
+    
+    return domain.ProfileUpdatedResponse(
+        message="Updated Correctly",
+        profile=profile,
+    )

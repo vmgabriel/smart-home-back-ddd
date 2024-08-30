@@ -10,6 +10,7 @@ from app.adapter.uow.psycopg import generics as psycopg_generics
 
 USER_TABLE_NAME = "public.profile"
 USER_FIELDS: List[str] = [
+    "id",
     "email",
     "phone",
     "icon_url",
@@ -18,6 +19,17 @@ USER_FIELDS: List[str] = [
     "deleted_at",
     "actived",
 ]
+
+
+class ProfileCreatorPsycopgRepository(domain.ProfileCreatorRepository, psycopg_generics.PsycopgCRUDGenericRepository):
+    def __init__(self, *args: Any, **kwargs: Any):
+        super().__init__(
+            *args, 
+            **kwargs, 
+            table_name=USER_TABLE_NAME, 
+            fields=USER_FIELDS
+        )
+
 
 
 class ProfileGetterPsycopgRepository(domain.ProfileFinderRepository, psycopg_generics.PsycopgFinderRepository):
@@ -29,14 +41,13 @@ class ProfileGetterPsycopgRepository(domain.ProfileFinderRepository, psycopg_gen
         )
 
     def serialize(self, data: Any) -> domain.Profile:
-        print(f"profile data {data}")
-        return domain.User(
+        return domain.Profile(
             id=str(data[0]),
-            email=str(data[1]),
-            phone=str(data[2]),
-            icon_url=str(data[3]),
-            actived=bool(data[4]),
-            created_at=data[5],
-            updated_at=data[6],
-            deleted_at=data[7],
+            actived=bool(data[1]),
+            created_at=data[2],
+            updated_at=data[3],
+            deleted_at=data[4],
+            email=str(data[5]),
+            phone=str(data[6]),
+            icon_url=str(data[7]),
         )

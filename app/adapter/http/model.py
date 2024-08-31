@@ -7,6 +7,7 @@ from app.lib import domain
 from app.adapter.log import model as log_model
 from app.adapter.uow import model as uow_model
 from app.adapter.jwt import model as jwt_model
+from app.adapter.messaging import model as messaging_model
 
 
 class AppHttp(pydantic.BaseModel):
@@ -46,5 +47,6 @@ class HttpAdapter(abc.ABC):
         settings: lib_models.settings.Setting, 
         uow: uow_model.UOW,
         jwt: jwt_model.AuthJWT,
+        messaging: messaging_model.Messaging,
     ) -> AppHttp:
         raise NotImplementedError()

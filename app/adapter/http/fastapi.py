@@ -9,6 +9,7 @@ from app.adapter.http import model
 from app.lib import domain, model as lib_model
 from app.adapter.uow import model as uow_model
 from app.adapter.jwt import model as jwt_model
+from app.adapter.messaging import model as messaging_model
 
 
 _API: str = "/api"
@@ -98,6 +99,7 @@ class FastApiAdapter(model.HttpAdapter):
         command_execution_request = {
             "uow": self.uow,
             "jwt": self.jwt,
+            "messaging": self.messaging,
             "request": fastapi.Request,
         }
         function_required_parameters = inspect.signature(command_function).parameters
@@ -165,9 +167,11 @@ class FastApiAdapter(model.HttpAdapter):
         settings: lib.settings.Setting, 
         uow: uow_model.UOW,
         jwt: jwt_model.AuthJWT,
+        messaging: messaging_model.Messaging,
     ) -> model.AppHttp:
         self.uow = uow
         self.jwt = jwt
+        self.messaging = messaging
         self.authorization_name_attribute = settings.authorization_name_attribute
         self.auth_type=settings.auth_type
         app = fastapi.FastAPI(

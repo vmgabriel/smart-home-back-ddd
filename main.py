@@ -6,7 +6,7 @@ import importlib.util
 
 from app import lib
 from app.lib import domain
-from app.adapter import http, server, log, uow, jwt
+from app.adapter import http, server, log, uow, jwt, messaging
 from app.adapter.uow import model as uow_model
 
 
@@ -18,6 +18,7 @@ _LOG_PROVIDER = log.get(_SETTINGS.log_provider)(settings=_SETTINGS)
 _HTTP_PROVIDER = http.get(_SETTINGS.http_provider)(log=_LOG_PROVIDER)
 _SERVER_PROVIDER = server.get(_SETTINGS.server_provider)()
 _UOW_MIGRATION = uow.migration_get(_SETTINGS.migration_provider)(log=_LOG_PROVIDER, settings=_SETTINGS)
+_MESSAGING_PROVIDER = messaging.get(_SETTINGS.messaging_provider)(log=_LOG_PROVIDER, settings=_SETTINGS)
 _PERSISTENCE_CREATOR = uow_model.PersistenceCreator(
     log=_LOG_PROVIDER,
     settings=_SETTINGS,
@@ -201,7 +202,12 @@ _UOW = uow.uow_get(_SETTINGS.migration_provider)(
 )
 
 
-app = _HTTP_PROVIDER.execute(settings=_SETTINGS, uow=_UOW, jwt=_JWT_PROVIDER)
+app = _HTTP_PROVIDER.execute(
+    settings=_SETTINGS, 
+    uow=_UOW, 
+    jwt=_JWT_PROVIDER,
+    messaging=_MESSAGING_PROVIDER,
+)
 
 
 if __name__ == "__main__":

@@ -63,6 +63,13 @@ class Setting(pydantic.BaseModel):
     postgres_host: str = ""
     postgres_username: str = ""
     postgres_password: str = ""
+
+    messaging_provider: str = "telegram_telephone"
+
+    # Telegram
+    telegram_phone_default: str = ""
+    telegram_api_hash: str = ""
+    telegram_api_id: str = ""
     
     @property
     def has_debug(self) -> bool:
